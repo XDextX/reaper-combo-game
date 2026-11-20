@@ -5,6 +5,7 @@ import { actualizar as moverEspiritu, crearEspiritu, pedir, type Golpe } from '.
 import { actualizarMuneco, cajaMuneco, crearMuneco, recibir } from './munecos';
 import { crearInterfaz } from './interfaz';
 import { ANCHO, ALTO, encuadre, seguirPantalla } from './pantalla';
+import { avanzar, crearSensacion, desplazamiento, impacto } from './sensacion';
 
 const canvas = document.querySelector<HTMLCanvasElement>('#juego')!;
 const ctx = canvas.getContext('2d')!;
@@ -21,6 +22,21 @@ const munecos = [crearMuneco(200, 60), crearMuneco(240, 95), crearMuneco(200, 13
 const detector = crearDetector();
 const contador = crearContador();
 const interfaz = crearInterfaz(COMBOS);
+const sensacion = crearSensacion();
+
+// Temblor de pantalla: apagado de entrada con movimiento reducido; la opción se recuerda si se puede.
+const opcionTemblor = document.querySelector<HTMLInputElement>('#opcion-temblor')!;
+const movimientoReducido = matchMedia('(prefers-reduced-motion: reduce)');
+try {
+  const guardado = localStorage.getItem('temblor');
+  opcionTemblor.checked = guardado === null ? !movimientoReducido.matches : guardado === '1';
+} catch {
+  opcionTemblor.checked = !movimientoReducido.matches;
+}
+opcionTemblor.addEventListener('change', () => {
+  try { localStorage.setItem('temblor', opcionTemblor.checked ? '1' : '0'); } catch { /* sin almacenamiento: solo esta visita */ }
+});
+const suave = () => !opcionTemblor.checked || movimientoReducido.matches;
 let ultimoGolpe: { golpe: Golpe; vida: number } | null = null;
 
 function actualizar(): void {
@@ -31,12 +47,16 @@ function actualizar(): void {
     if (combo) interfaz.combo(combo, ahora);
     pedir(espiritu, p.accion, combo);
   }
-  const golpe = moverEspiritu(espiritu, mover);
-  if (golpe) {
-    ultimoGolpe = { golpe, vida: 6 };
-    for (const m of munecos) if (recibir(m, golpe, espiritu)) contador.golpe(ahora);
+  if (!avanzar(sensacion)) {
+    const golpe = moverEspiritu(espiritu, mover);
+    if (golpe) {
+      ultimoGolpe = { golpe, vida: 6 };
+      const alcanzados = munecos.filter((m) => recibir(m, golpe, espiritu));
+      alcanzados.forEach(() => contador.golpe(ahora));
+      if (alcanzados.length) impacto(sensacion, golpe, alcanzados, suave());
+    }
+    for (const m of munecos) actualizarMuneco(m);
   }
-  for (const m of munecos) actualizarMuneco(m);
   contador.actualizar(ahora);
   if (ultimoGolpe && --ultimoGolpe.vida <= 0) ultimoGolpe = null;
   interfaz.actualizar(detector.pendiente(ahora), contador.golpes, contador.multiplicador, ahora);
@@ -48,7 +68,8 @@ function dibujar(): void {
   ctx.fillStyle = '#07070b';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   // A partir de aquí se dibuja en píxeles de juego (320×180).
-  ctx.setTransform(marco.e, 0, 0, marco.e, marco.x, marco.y);
+  const d = desplazamiento(sensacion);
+  ctx.setTransform(marco.e, 0, 0, marco.e, marco.x + d.x * marco.e, marco.y + d.y * marco.e);
   ctx.fillStyle = '#0d0d14';
   ctx.fillRect(0, 0, ANCHO, ALTO);
   // Límite de la arena: contraste 3:1 con el fondo, porque es un borde con el que se choca.
@@ -67,6 +88,10 @@ function dibujar(): void {
   ctx.fillRect(Math.round(espiritu.x) - 5, Math.round(espiritu.y) - 7, 10, 14);
   ctx.fillStyle = '#ff4fc3';
   ctx.fillRect(Math.round(espiritu.x + espiritu.mira.x * 6) - 1, Math.round(espiritu.y + espiritu.mira.y * 6) - 1, 2, 2);
+  for (const p of sensacion.particulas) {
+    ctx.fillStyle = p.color;
+    ctx.fillRect(Math.round(p.x), Math.round(p.y), 1, 1);
+  }
   if (ultimoGolpe) {
     const { caja } = ultimoGolpe.golpe;
     ctx.fillStyle = ultimoGolpe.golpe.combo ? 'rgba(208, 69, 159, .6)' : 'rgba(159, 230, 240, .35)';
