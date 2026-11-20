@@ -8,10 +8,39 @@
     <style>
       html, body { margin: 0; height: 100%; background: #07070b; overflow: hidden; }
       canvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; image-rendering: pixelated; }
+      #tactil, #girar { display: none; }
+      @media (pointer: coarse) {
+        #tactil { display: block; }
+        #joystick { position: fixed; left: 0; bottom: 0; width: 45vw; height: 70vh; touch-action: none; }
+        #joystick.activo::before, #pomo { position: fixed; border-radius: 50%; pointer-events: none; }
+        #joystick.activo::before { content: ''; left: calc(var(--x) - 48px); top: calc(var(--y) - 48px);
+          width: 96px; height: 96px; border: 2px solid #4a6470; }
+        #pomo { display: none; width: 40px; height: 40px; background: #9fe6f0; opacity: .7; }
+        #joystick.activo #pomo { display: block; left: calc(var(--x) - 20px); top: calc(var(--y) - 20px); }
+        #botones { position: fixed; right: 16px; bottom: 16px; display: grid; gap: 12px;
+          grid-template-areas: ". p" "l e"; }
+        #botones button { width: 64px; height: 64px; border-radius: 50%; touch-action: none; user-select: none;
+          -webkit-user-select: none; font: 700 24px system-ui, sans-serif; color: #e8f6f8;
+          background: rgba(13, 13, 20, .6); border: 2px solid #4a6470; }
+        #botones button:active { background: #b03a8c; }
+      }
+      @media (pointer: coarse) and (orientation: portrait) {
+        #girar { display: grid; place-items: center; position: fixed; inset: 0; margin: 0; padding: 24px;
+          background: #07070b; color: #e8f6f8; font: 600 22px system-ui, sans-serif; text-align: center; }
+      }
     </style>
   </head>
   <body>
     <canvas id="juego" role="img" aria-label="Arena de práctica"></canvas>
+    <div id="tactil">
+      <div id="joystick" aria-hidden="true"><div id="pomo"></div></div>
+      <div id="botones">
+        <button type="button" data-accion="L" aria-label="Golpe ligero" style="grid-area: l">L</button>
+        <button type="button" data-accion="P" aria-label="Golpe pesado" style="grid-area: p">P</button>
+        <button type="button" data-accion="E" aria-label="Esquiva" style="grid-area: e">E</button>
+      </div>
+    </div>
+    <p id="girar" role="alert">Gira el teléfono para jugar en horizontal</p>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
