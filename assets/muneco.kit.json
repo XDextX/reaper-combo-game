@@ -1,0 +1,29 @@
+{
+  "generated": "lienzo",
+  "sprites": {
+    "muneco": {
+      "sheet": "muneco.png",
+      "license": "LICENCIA-sprites.txt",
+      "frames": {
+        "quieto-1": {
+          "x": 0,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "golpeado-1": {
+          "x": 32,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "golpeado-2": {
+          "x": 64,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        }
+      }
+    }
+  }
+}

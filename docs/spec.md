@@ -61,7 +61,7 @@ La tecla se lee por su posición física (`KeyboardEvent.code`), así que WASD, 
 
 - Pixel art oscuro, con fotogramas de 32×32 escalados sin suavizado.
 - Paleta: fondo casi negro, el espíritu en cian pálido y los golpes en magenta.
-- Las hojas de sprites se dibujan con Lienzo, usando el elemento `pixels` y `spritesheet` / `sheetFrame`. Lienzo saca a la vez la hoja `.png` y su `.kit.json`. Se renderizan en la carpeta de salida de Lienzo y se copian a `assets/`. Los diseños de las hojas se guardan en `assets/fuentes/`, para que el dueño pueda abrirlos en el editor de Lienzo.
+- Las hojas de sprites se dibujan con Lienzo, usando el elemento `pixels` y `spritesheet` / `sheetFrame`. Lienzo saca a la vez la hoja `.png` y su `.kit.json`. Los diseños de las hojas se generan con `assets/fuentes/hojas.py` y se guardan en `assets/fuentes/`, para que el dueño pueda abrirlos en el editor de Lienzo. Se renderizan con el comando de Lienzo directamente en `assets/` (por ejemplo, `node <lienzo>/lienzo.js render assets/fuentes/espiritu.json -o assets/espiritu.png`).
 
 | Hoja | Animaciones (fotogramas) |
 |---|---|

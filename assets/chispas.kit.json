@@ -1,0 +1,53 @@
+{
+  "generated": "lienzo",
+  "sprites": {
+    "chispas": {
+      "sheet": "chispas.png",
+      "license": "LICENCIA-sprites.txt",
+      "frames": {
+        "impacto-L-1": {
+          "x": 0,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "impacto-L-2": {
+          "x": 32,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "impacto-L-3": {
+          "x": 64,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "impacto-P-1": {
+          "x": 96,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "impacto-P-2": {
+          "x": 128,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "impacto-P-3": {
+          "x": 160,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "impacto-P-4": {
+          "x": 192,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        }
+      }
+    }
+  }
+}
