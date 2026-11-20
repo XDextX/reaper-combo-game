@@ -1,7 +1,9 @@
 import { arrancar } from './bucle';
+import { crearContador, crearDetector } from './combos';
 import { crearEntrada } from './entrada';
+import { actualizar as moverEspiritu, crearEspiritu, pedir, type Golpe } from './espiritu';
+import { actualizarMuneco, cajaMuneco, crearMuneco, recibir } from './munecos';
 import { ANCHO, ALTO, encuadre, seguirPantalla } from './pantalla';
-import type { Accion } from './traducir';
 
 const canvas = document.querySelector<HTMLCanvasElement>('#juego')!;
 const ctx = canvas.getContext('2d')!;
@@ -13,21 +15,27 @@ seguirPantalla(canvas, (ancho, alto) => {
   dibujar(); // y lo borra: sin esto queda un fotograma en blanco
 });
 
-// Marcador de prueba para la entrada; lo sustituye el espíritu en RC-4.
-const marcador = { x: ANCHO / 2, y: ALTO / 2, accion: null as Accion | null, brillo: 0 };
-const VELOCIDAD = 1.5; // píxeles de juego por paso
+const espiritu = crearEspiritu(80, ALTO / 2);
+const munecos = [crearMuneco(200, 60), crearMuneco(240, 95), crearMuneco(200, 130)];
+const detector = crearDetector();
+const contador = crearContador();
+let ultimoGolpe: { golpe: Golpe; vida: number } | null = null;
 
 function actualizar(): void {
+  const ahora = performance.now();
   const { mover, acciones } = entrada.leer();
-  marcador.x = Math.min(ANCHO - 14, Math.max(10, marcador.x + mover.x * VELOCIDAD));
-  marcador.y = Math.min(ALTO - 14, Math.max(10, marcador.y + mover.y * VELOCIDAD));
-  const ultima = acciones.at(-1);
-  if (ultima) { marcador.accion = ultima.accion; marcador.brillo = 12; }
-  else if (marcador.brillo > 0) marcador.brillo--;
+  for (const p of acciones) pedir(espiritu, p.accion, detector.registrar(p));
+  const golpe = moverEspiritu(espiritu, mover);
+  if (golpe) {
+    ultimoGolpe = { golpe, vida: 6 };
+    for (const m of munecos) if (recibir(m, golpe, espiritu)) contador.golpe(ahora);
+  }
+  for (const m of munecos) actualizarMuneco(m);
+  contador.actualizar(ahora);
+  if (ultimoGolpe && --ultimoGolpe.vida <= 0) ultimoGolpe = null;
 }
 
-const COLOR: Record<Accion, string> = { L: '#9fe6f0', P: '#d0459f', E: '#ffffff' };
-
+// shortcut: figuras provisionales; RC-5 las cambia por las hojas de sprites.
 function dibujar(): void {
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.fillStyle = '#07070b';
@@ -42,8 +50,21 @@ function dibujar(): void {
   ctx.fillRect(8, ALTO - 9, ANCHO - 16, 1);
   ctx.fillRect(8, 8, 1, ALTO - 16);
   ctx.fillRect(ANCHO - 9, 8, 1, ALTO - 16);
-  ctx.fillStyle = marcador.brillo > 0 && marcador.accion ? COLOR[marcador.accion] : '#5d8a96';
-  ctx.fillRect(Math.round(marcador.x), Math.round(marcador.y), 4, 4);
+
+  for (const m of munecos) {
+    const c = cajaMuneco(m);
+    ctx.fillStyle = m.golpeado > 0 ? '#ffffff' : '#8a7a68';
+    ctx.fillRect(Math.round(c.x), Math.round(c.y), c.w, c.h);
+  }
+  ctx.fillStyle = espiritu.estado === 'esquivando' ? '#e8fbff' : '#9fe6f0';
+  ctx.fillRect(Math.round(espiritu.x) - 5, Math.round(espiritu.y) - 7, 10, 14);
+  ctx.fillStyle = '#ff4fc3';
+  ctx.fillRect(Math.round(espiritu.x + espiritu.mira.x * 6) - 1, Math.round(espiritu.y + espiritu.mira.y * 6) - 1, 2, 2);
+  if (ultimoGolpe) {
+    const { caja } = ultimoGolpe.golpe;
+    ctx.fillStyle = ultimoGolpe.golpe.combo ? 'rgba(208, 69, 159, .6)' : 'rgba(159, 230, 240, .35)';
+    ctx.fillRect(Math.round(caja.x), Math.round(caja.y), caja.w, caja.h);
+  }
 }
 
 arrancar(actualizar, dibujar);
