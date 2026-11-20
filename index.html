@@ -2,16 +2,16 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Reaper Combo Game</title>
     <style>
       html, body { margin: 0; height: 100%; background: #07070b; overflow: hidden; }
       body { display: grid; place-items: center; }
-      canvas { image-rendering: pixelated; }
+      canvas { image-rendering: pixelated; touch-action: none; }
     </style>
   </head>
   <body>
-    <canvas id="juego" aria-label="Arena de práctica"></canvas>
+    <canvas id="juego" role="img" aria-label="Arena de práctica"></canvas>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

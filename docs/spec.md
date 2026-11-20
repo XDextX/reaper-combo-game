@@ -1,6 +1,6 @@
 # Reaper Combo Game: spec v1
 
-Estado: borrador para aprobar por el dueño.
+Estado: **aprobada por el dueño el 2026-11-20.**
 
 ## Idea
 
@@ -51,13 +51,17 @@ Una sola capa de entrada traduce teclado, mando y táctil a las mismas acciones 
 | Golpe pesado | K | Botón izquierdo | Botón P |
 | Esquiva | Espacio | Botón derecho | Botón E |
 
-En móvil, el juego se ve apaisado y se escala para llenar la pantalla manteniendo los píxeles nítidos.
+La tecla se lee por su posición física (`KeyboardEvent.code`), así que WASD, J y K caen en el mismo sitio con un teclado AZERTY.
+
+**Pantalla.** La arena mide 320×180 y se escala por el mayor entero de píxeles de dispositivo que cabe, centrada y con bandas oscuras; así todos los píxeles miden lo mismo. Si la ventana es más pequeña que 320×180, se usa una escala fraccionaria para no recortar.
+
+**Móvil.** Se juega en apaisado: el joystick va en la banda izquierda y L, P y E en la derecha. En vertical se muestra un aviso en HTML: «Gira el teléfono». Los controles y el canvas llevan `touch-action: none`. La pantalla completa es opcional, no imprescindible (en iPhone no funciona).
 
 ## Estilo visual
 
 - Pixel art oscuro, con fotogramas de 32×32 escalados sin suavizado.
 - Paleta: fondo casi negro, el espíritu en cian pálido y los golpes en magenta.
-- Las hojas de sprites se dibujan con Lienzo, usando el elemento `pixels` y `spritesheet` / `sheetFrame`. Lienzo saca a la vez la hoja `.png` y su `.kit.json`. Se renderizan en `Documents\lienzo-trabajo\salida` y se copian a `assets/`. Los diseños de las hojas se guardan en `assets/fuentes/`, para que el dueño pueda abrirlos en el editor de Lienzo.
+- Las hojas de sprites se dibujan con Lienzo, usando el elemento `pixels` y `spritesheet` / `sheetFrame`. Lienzo saca a la vez la hoja `.png` y su `.kit.json`. Se renderizan en la carpeta de salida de Lienzo y se copian a `assets/`. Los diseños de las hojas se guardan en `assets/fuentes/`, para que el dueño pueda abrirlos en el editor de Lienzo.
 
 | Hoja | Animaciones (fotogramas) |
 |---|---|
@@ -67,6 +71,14 @@ En móvil, el juego se ve apaisado y se escala para llenar la pantalla mantenien
 | suelo | 4 baldosas |
 
 El juego lee las regiones directamente del `.kit.json` generado. Un mismo mapa sirve a la vez a Lienzo y al juego.
+
+## Accesibilidad y movimiento
+
+- Con `prefers-reduced-motion` no hay temblor de pantalla, o es de 1 px. El juego tiene además una opción para quitarlo.
+- Los destellos solo afectan al muñeco y son como mucho 3 por segundo (WCAG 2.3.1).
+- La lista de combos y la ayuda de controles van en HTML encima del canvas. El paso actual se marca con `aria-current`, sin anunciarse en cada golpe.
+- L, P y E no se distinguen solo por color: cada uno lleva su letra o su forma.
+- El canvas lleva `role="img"` y una etiqueta. El límite de la arena tiene un contraste de al menos 3:1 con el fondo.
 
 ## Tecnología
 
