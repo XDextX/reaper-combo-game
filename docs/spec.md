@@ -1,0 +1,90 @@
+# Reaper Combo Game: spec v1
+
+Estado: borrador para aprobar por el dueño.
+
+## Idea
+
+Un juego 2D cenital y original. Eres un espíritu menor, un aprendiz de segador que se hace más fuerte encadenando golpes. Cuando un combo sale bien tiene que notarse: el golpe pesa, la pantalla responde y el contador sube.
+
+No usa nombres, personajes, arte ni niveles de ningún juego existente.
+
+## Alcance de la v1: arena de práctica
+
+Entra:
+- Una arena de una sola pantalla con 3 muñecos de práctica que no mueren ni atacan.
+- El espíritu se mueve en 8 direcciones y tiene 3 acciones: golpe ligero (L), golpe pesado (P) y esquiva (E).
+- 5 combos con nombre (ver «Combos»).
+- Un contador de combo con multiplicador.
+- La lista de combos en pantalla, que se ilumina paso a paso mientras ejecutas un combo.
+- La sensación del golpe: pausa al impactar, temblor de pantalla, partículas y destello del muñeco.
+- Controles de teclado, mando y táctiles.
+- Demo publicada en GitHub Pages.
+
+Queda para después: oleadas de enemigos, enemigos que atacan, jefe, vida y muerte del jugador, menús, sonido y guardado.
+
+## Combos
+
+Hay dos capas que funcionan a la vez.
+
+**1. Secuencias con nombre.** El detector guarda las últimas acciones con su instante. Una secuencia cuenta si cada acción llega como mucho 400 ms después de la anterior. Gana la secuencia más larga que coincida.
+
+| Nombre | Secuencia | Efecto |
+|---|---|---|
+| Siega | L L L | Tres cortes rápidos; el último empuja |
+| Guadañazo | L L P | Barrido en arco amplio |
+| Juicio | P P | Golpe lento con mucho empuje y pausa larga |
+| Paso fantasma | E L | Esquiva y corte al salir, con un pequeño avance |
+| Cosecha | L P E P | Final: golpe giratorio en área |
+
+Los nombres y los tiempos son valores iniciales; se ajustan jugando y viven en un solo archivo de datos.
+
+**2. Contador y multiplicador.** Cada golpe que conecta suma 1. El multiplicador sube un nivel cada 10 golpes, hasta x4. El contador se rompe tras 2 s sin conectar un golpe. Como en la v1 los muñecos no atacan, la regla de que recibir daño rompe el contador queda escrita pero sin uso.
+
+## Controles
+
+Una sola capa de entrada traduce teclado, mando y táctil a las mismas acciones (mover, L, P, E). El resto del juego no sabe de dónde vienen.
+
+| Acción | Teclado | Mando (Gamepad API) | Móvil |
+|---|---|---|---|
+| Mover | WASD o flechas | Stick izquierdo o cruceta | Joystick táctil a la izquierda |
+| Golpe ligero | J | Botón inferior | Botón L |
+| Golpe pesado | K | Botón izquierdo | Botón P |
+| Esquiva | Espacio | Botón derecho | Botón E |
+
+En móvil, el juego se ve apaisado y se escala para llenar la pantalla manteniendo los píxeles nítidos.
+
+## Estilo visual
+
+- Pixel art oscuro, con fotogramas de 32×32 escalados sin suavizado.
+- Paleta: fondo casi negro, el espíritu en cian pálido y los golpes en magenta.
+- Las hojas de sprites se dibujan con Lienzo, usando el elemento `pixels` y `spritesheet` / `sheetFrame`. Lienzo saca a la vez la hoja `.png` y su `.kit.json`. Se renderizan en `Documents\lienzo-trabajo\salida` y se copian a `assets/`. Los diseños de las hojas se guardan en `assets/fuentes/`, para que el dueño pueda abrirlos en el editor de Lienzo.
+
+| Hoja | Animaciones (fotogramas) |
+|---|---|
+| espiritu | quieto (2), andar (4), golpe-L (3), golpe-P (4), esquiva (3), dano (2) |
+| muneco | quieto (1), golpeado (2) |
+| chispas | impacto-L (3), impacto-P (4) |
+| suelo | 4 baldosas |
+
+El juego lee las regiones directamente del `.kit.json` generado. Un mismo mapa sirve a la vez a Lienzo y al juego.
+
+## Tecnología
+
+- Vite + TypeScript, con Canvas 2D a mano y sin motor de juegos.
+- Bucle de juego con paso fijo de 60 Hz.
+- vitest para la lógica: el detector de combos, el contador y multiplicador, la máquina de estados del espíritu (quieto, andar, atacando, esquivando) y la capa de entrada.
+- Despliegue en GitHub Pages con una GitHub Action.
+
+## Qué debe lucir en el portafolio
+
+1. La sensación del golpe. Es lo primero que se nota en la demo.
+2. La lista de combos en vivo, que se ilumina mientras juegas.
+3. La demo jugable online, enlazada desde el README con una captura o un GIF.
+
+## Hecho para la v1
+
+- La demo en GitHub Pages carga y es jugable con teclado, mando y en un móvil.
+- Los 5 combos se pueden ejecutar, y la lista los marca al salir.
+- El contador y el multiplicador funcionan según las reglas de arriba.
+- Los tests de vitest pasan para el detector, el contador, la máquina de estados y la capa de entrada.
+- Los sprites salen de hojas hechas con Lienzo, y sus diseños están en el repo.
