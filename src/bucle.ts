@@ -18,7 +18,13 @@ export function arrancar(actualizar: () => void, dibujar: () => void): void {
   let acumulado = 0;
   let pausado = false;
   const pausar = () => { pausado = true; };
-  const seguir = () => { pausado = false; antes = null; acumulado = 0; };
+  const seguir = () => {
+    // Un focus puede llegar con la pestaña oculta, y mostrarla no le devuelve el foco.
+    if (document.hidden || !document.hasFocus()) return;
+    pausado = false;
+    antes = null;
+    acumulado = 0;
+  };
   addEventListener('blur', pausar);
   addEventListener('focus', seguir);
   document.addEventListener('visibilitychange', () => (document.hidden ? pausar() : seguir()));
