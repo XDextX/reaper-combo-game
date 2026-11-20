@@ -2,7 +2,28 @@
 
 An original 2D top-down game about combos: a reaper's apprentice spirit who grows stronger by chaining hits. Version 1 is a practice arena. What is in it and why: [docs/spec.md](docs/spec.md). The build order: [docs/plan.md](docs/plan.md). Both are in Spanish.
 
-Status: technical base (a 320×180 canvas with crisp integer scaling and a fixed 60 Hz loop). The GitHub Pages demo arrives with task 8 of the plan.
+**Play it:** https://xdextx.github.io/reaper-combo-game/ (keyboard, gamepad or touch).
+
+## How to play
+
+| Action | Keyboard | Gamepad | Touch |
+|---|---|---|---|
+| Move | WASD or arrows | Left stick or d-pad | Left-side joystick |
+| Light hit (L) | J | Bottom button | L |
+| Heavy hit (P) | K | Left button | P |
+| Dodge (E) | Space | Right button | E |
+
+Chain actions less than 400 ms apart to land a named combo:
+
+| Combo | Input | Finisher |
+|---|---|---|
+| Siega | L L L | Third cut pushes harder |
+| Guadañazo | L L P | Wide sweeping arc |
+| Juicio | P P | Slow, heavy hit with a long freeze |
+| Paso fantasma | E L | Dodge, then lunge and cut |
+| Cosecha | L P E P | Spinning hit all around |
+
+Every hit that connects adds to the counter; the multiplier rises every 10 hits up to ×4 and resets after 2 s without a hit. Screen shake follows `prefers-reduced-motion` and can be turned off under «Controles».
 
 ## Run
 
