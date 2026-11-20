@@ -8,6 +8,25 @@
     <style>
       html, body { margin: 0; height: 100%; background: #07070b; overflow: hidden; }
       canvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; image-rendering: pixelated; }
+      #hud { position: fixed; top: 8px; left: 8px; margin: 0; padding: 8px 10px; max-width: 46vw;
+        background: rgba(7, 7, 11, .72); color: #cfe9ee; font: 500 13px/1.5 system-ui, sans-serif;
+        border-radius: 6px; pointer-events: auto; }
+      #hud h2 { margin: 0 0 4px; font-size: 13px; color: #9fe6f0; }
+      #combos { list-style: none; margin: 0; padding: 0; }
+      #combos li { display: flex; align-items: center; gap: 4px; }
+      #combos .nombre { min-width: 7.5em; }
+      #combos li.completo .nombre { color: #ff7fd4; font-weight: 700; }
+      .paso { display: inline-grid; place-items: center; width: 16px; height: 16px; font-size: 10px; font-weight: 700;
+        color: #9aa9b0; border: 1px solid #4a6470; }
+      .paso-L { border-radius: 50%; }
+      .paso-E { border-style: dashed; border-radius: 3px 8px; }
+      .paso.hecho { color: #07070b; background: #9fe6f0; border-color: #9fe6f0; }
+      li.completo .paso { background: #d0459f; border-color: #d0459f; color: #fff; }
+      #contador { margin: 6px 0 0; min-height: 1.5em; color: #e8fbff; font-weight: 700; }
+      #ayuda { margin-top: 4px; }
+      #ayuda summary { cursor: pointer; color: #9fe6f0; }
+      #ayuda p { margin: 2px 0; }
+      .solo-lectores { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
       #tactil, #girar { display: none; }
       @media (pointer: coarse) {
         #tactil { display: block; }
@@ -32,6 +51,18 @@
   </head>
   <body>
     <canvas id="juego" role="img" aria-label="Arena de práctica"></canvas>
+    <section id="hud" aria-label="Combos">
+      <h2>Combos</h2>
+      <ol id="combos"></ol>
+      <p id="contador"></p>
+      <details id="ayuda">
+        <summary>Controles</summary>
+        <p>Teclado: WASD o flechas para moverte, J golpe ligero, K golpe pesado, Espacio esquiva.</p>
+        <p>Mando: stick o cruceta, botón inferior ligero, izquierdo pesado, derecho esquiva.</p>
+        <p>Móvil: joystick a la izquierda y botones L, P y E a la derecha.</p>
+      </details>
+      <p id="aviso-combo" class="solo-lectores" aria-live="polite"></p>
+    </section>
     <div id="tactil">
       <div id="joystick" aria-hidden="true"><div id="pomo"></div></div>
       <div id="botones">

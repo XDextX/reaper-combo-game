@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { COMBOS, crearContador, crearDetector, multiplicador } from './combos';
+import { COMBOS, avance, crearContador, crearDetector, multiplicador } from './combos';
 import type { Accion } from './traducir';
 
 /** Registra acciones separadas por `paso` ms y devuelve los combos que salen. */
@@ -55,5 +55,20 @@ describe('contador', () => {
     expect(c.multiplicador).toBe(2);
     c.romper();
     expect([c.golpes, c.multiplicador]).toEqual([0, 1]);
+  });
+});
+
+describe('avance para la lista en vivo', () => {
+  const cosecha = COMBOS.find((c) => c.nombre === 'Cosecha')!;
+  it('cuenta los pasos hechos del combo al final del historial', () => {
+    expect(avance(['L', 'P'], cosecha)).toBe(2);
+    expect(avance(['P', 'L'], cosecha)).toBe(1);
+    expect(avance(['E'], cosecha)).toBe(0);
+  });
+  it('pasada la ventana, no queda nada pendiente', () => {
+    const d = crearDetector();
+    d.registrar({ accion: 'L', t: 0 });
+    expect(d.pendiente(400)).toEqual(['L']);
+    expect(d.pendiente(401)).toEqual([]);
   });
 });

@@ -27,12 +27,23 @@ export function buscar(historial: Accion[], combos = COMBOS): Combo | null {
   return mejor;
 }
 
+/** Cuántos pasos del combo lleva hechos el final del historial (sin contar el combo entero). */
+export function avance(historial: readonly Accion[], combo: Combo): number {
+  for (let k = Math.min(historial.length, combo.secuencia.length - 1); k > 0; k--) {
+    const cola = historial.slice(-k);
+    if (cola.every((a, i) => a === combo.secuencia[i])) return k;
+  }
+  return 0;
+}
+
 /** Guarda las acciones dentro de la ventana y avisa cuando una completa un combo. */
 export function crearDetector(combos = COMBOS) {
   let historial: Accion[] = [];
   let ultima = -Infinity;
   return {
     get historial(): readonly Accion[] { return historial; },
+    /** Lo que sigue vivo en el instante t: pasada la ventana, nada. */
+    pendiente(t: number): readonly Accion[] { return t - ultima > VENTANA ? [] : historial; },
     registrar(p: Pulsacion): Combo | null {
       if (p.t - ultima > VENTANA) historial = [];
       ultima = p.t;

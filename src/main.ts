@@ -1,8 +1,9 @@
 import { arrancar } from './bucle';
-import { crearContador, crearDetector } from './combos';
+import { COMBOS, crearContador, crearDetector } from './combos';
 import { crearEntrada } from './entrada';
 import { actualizar as moverEspiritu, crearEspiritu, pedir, type Golpe } from './espiritu';
 import { actualizarMuneco, cajaMuneco, crearMuneco, recibir } from './munecos';
+import { crearInterfaz } from './interfaz';
 import { ANCHO, ALTO, encuadre, seguirPantalla } from './pantalla';
 
 const canvas = document.querySelector<HTMLCanvasElement>('#juego')!;
@@ -19,12 +20,17 @@ const espiritu = crearEspiritu(80, ALTO / 2);
 const munecos = [crearMuneco(200, 60), crearMuneco(240, 95), crearMuneco(200, 130)];
 const detector = crearDetector();
 const contador = crearContador();
+const interfaz = crearInterfaz(COMBOS);
 let ultimoGolpe: { golpe: Golpe; vida: number } | null = null;
 
 function actualizar(): void {
   const ahora = performance.now();
   const { mover, acciones } = entrada.leer();
-  for (const p of acciones) pedir(espiritu, p.accion, detector.registrar(p));
+  for (const p of acciones) {
+    const combo = detector.registrar(p);
+    if (combo) interfaz.combo(combo, ahora);
+    pedir(espiritu, p.accion, combo);
+  }
   const golpe = moverEspiritu(espiritu, mover);
   if (golpe) {
     ultimoGolpe = { golpe, vida: 6 };
@@ -33,6 +39,7 @@ function actualizar(): void {
   for (const m of munecos) actualizarMuneco(m);
   contador.actualizar(ahora);
   if (ultimoGolpe && --ultimoGolpe.vida <= 0) ultimoGolpe = null;
+  interfaz.actualizar(detector.pendiente(ahora), contador.golpes, contador.multiplicador, ahora);
 }
 
 // shortcut: figuras provisionales; RC-5 las cambia por las hojas de sprites.
