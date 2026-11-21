@@ -54,3 +54,14 @@ describe('lado', () => {
     expect(lado(40_000)).toBe(MAX_LADO);
   });
 });
+
+describe('encuadre táctil con columna reservada', () => {
+  it('812×375 a DPR 3: misma escala, la arena pasa a la izquierda', () => {
+    expect(encuadre(2436, 1125, 160 * 3)).toEqual({ e: 6, x: 18, y: 22 });
+  });
+  it('640×360 a DPR 2: con 160 px reservados la escala queda en 3 sin tapar los botones', () => {
+    const r = encuadre(1280, 720, 160 * 2);
+    expect(r.e).toBe(3);
+    expect(r.x + 320 * r.e).toBeLessThanOrEqual(1280 - 320);
+  });
+});

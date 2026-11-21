@@ -9,7 +9,7 @@ LICENCIA = "LICENCIA-sprites.txt"
 
 PALETA = {
     ".": "transparent",
-    "o": "#0b1a22",  # contorno
+    "o": "#24343c",  # contorno, visible sobre el suelo
     "c": "#eef6f8",  # cuerpo blanco espectral (aprobado por el dueño, v2)
     "C": "#ffffff",  # brillo
     "s": "#8fd3e0",  # sombra cian

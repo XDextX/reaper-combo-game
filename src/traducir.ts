@@ -22,6 +22,20 @@ export const TECLAS_ACCION: Record<string, Accion> = { KeyJ: 'L', KeyK: 'P', Spa
 export const BOTONES_ACCION: Record<number, Accion> = { 0: 'L', 2: 'P', 1: 'E' };
 export const BOTONES_MOVER: Record<number, Vector> = { 12: ARRIBA, 13: ABAJO, 14: IZQUIERDA, 15: DERECHA };
 
+// Donde Espacio y Enter ya hacen algo: se les dejan a ellos.
+const CONTROLES = new Set(['INPUT', 'BUTTON', 'SUMMARY', 'TEXTAREA', 'SELECT']);
+
+/** Una tecla del juego sin Ctrl, Cmd ni Alt: los atajos del navegador y los controles con foco se dejan pasar. */
+export function esTeclaDeJuego(
+  e: { code: string; ctrlKey: boolean; metaKey: boolean; altKey: boolean },
+  destino?: EventTarget | null,
+): boolean {
+  if (e.ctrlKey || e.metaKey || e.altKey) return false;
+  const etiqueta = (destino as { tagName?: string } | null | undefined)?.tagName;
+  if ((e.code === 'Space' || e.code === 'Enter') && etiqueta && CONTROLES.has(etiqueta)) return false;
+  return Object.hasOwn(TECLAS_ACCION, e.code) || Object.hasOwn(TECLAS_MOVER, e.code);
+}
+
 /** Suma las direcciones de lo que está pulsado. */
 export function sumar<K extends string | number>(pulsado: Iterable<K>, mapa: Record<K, Vector>): Vector {
   const v = { x: 0, y: 0 };

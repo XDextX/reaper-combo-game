@@ -12,6 +12,7 @@ export const ACTIVO: Record<'L' | 'P', number> = { L: 4, P: 10 };
 const VELOCIDAD = 1.2;
 const VEL_ESQUIVA = 3;
 export const LIMITES = { x0: 16, y0: 20, x1: 304, y1: 166 };
+const MAX_ESPERA = 3;
 
 type Forma = { w: number; h: number; empuje: number; centrado?: boolean; avance?: number };
 const BASE: Record<'L' | 'P', Forma> = { L: { w: 14, h: 14, empuje: 2 }, P: { w: 20, h: 18, empuje: 4 } };
@@ -33,7 +34,8 @@ export function crearEspiritu(x: number, y: number) {
     accion: null as Accion | null,
     combo: null as Combo | null,
     paso: 0,
-    siguiente: null as { accion: Accion; combo: Combo | null } | null,
+    // Pulsaciones que esperan a que acabe la acción actual; no se pisan, así un combo no se pierde.
+    siguientes: [] as { accion: Accion; combo: Combo | null }[],
   };
 }
 export type Espiritu = ReturnType<typeof crearEspiritu>;
@@ -49,8 +51,9 @@ function empezar(e: Espiritu, accion: Accion, combo: Combo | null): void {
 
 /** Una acción pulsada: empieza ya o, si está ocupado, espera a que acabe la actual. */
 export function pedir(e: Espiritu, accion: Accion, combo: Combo | null = null): void {
-  if (ocupado(e)) e.siguiente = { accion, combo };
-  else empezar(e, accion, combo);
+  if (!ocupado(e)) empezar(e, accion, combo);
+  else if (e.siguientes.length < MAX_ESPERA) e.siguientes.push({ accion, combo });
+  else if (combo) e.siguientes[MAX_ESPERA - 1] = { accion, combo };
 }
 
 function golpeDe(e: Espiritu, accion: 'L' | 'P'): Golpe {
@@ -86,8 +89,7 @@ export function actualizar(e: Espiritu, mover: Vector): Golpe | null {
       e.estado = 'quieto';
       e.accion = null;
       e.combo = null;
-      const s = e.siguiente;
-      e.siguiente = null;
+      const s = e.siguientes.shift();
       if (s) empezar(e, s.accion, s.combo);
     }
   } else {

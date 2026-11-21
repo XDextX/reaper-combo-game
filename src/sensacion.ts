@@ -9,16 +9,16 @@ export const TEMBLOR = { normal: 2, combo: 4 };
 const VIDA_PARTICULA = 18;
 
 export function crearSensacion() {
-  return { pausa: 0, temblor: 0, particulas: [] as Particula[] };
+  return { pausa: 0, temblor: 0, dx: 0, dy: 0, particulas: [] as Particula[] };
 }
 export type Sensacion = ReturnType<typeof crearSensacion>;
 
-/** Un golpe que conectó en `puntos`. Con `suave` (movimiento reducido o la opción), el temblor no pasa de 1 px. */
-export function impacto(s: Sensacion, golpe: Golpe, puntos: { x: number; y: number }[], suave: boolean, azar = Math.random): void {
+/** Un golpe que conectó en `puntos`. `maxTemblor` limita el temblor: 0 apagado, 1 con movimiento reducido. */
+export function impacto(s: Sensacion, golpe: Golpe, puntos: { x: number; y: number }[], maxTemblor = Infinity, azar = Math.random): void {
   const nombre = golpe.combo?.nombre;
   s.pausa = Math.max(s.pausa, nombre === 'Juicio' ? PAUSA.Juicio : nombre ? PAUSA.combo : PAUSA.normal);
   const fuerza = nombre ? TEMBLOR.combo : TEMBLOR.normal;
-  s.temblor = Math.max(s.temblor, suave ? Math.min(1, fuerza) : fuerza);
+  s.temblor = Math.max(s.temblor, Math.min(maxTemblor, fuerza));
   const color = golpe.combo ? '#ff4fc3' : golpe.accion === 'P' ? '#e8fbff' : '#9fe6f0';
   for (const p of puntos) {
     for (let i = 0; i < (golpe.combo ? 10 : 6); i++) {
@@ -30,7 +30,7 @@ export function impacto(s: Sensacion, golpe: Golpe, puntos: { x: number; y: numb
 }
 
 /** Un paso fijo. Devuelve true si el juego sigue congelado por la pausa de impacto. */
-export function avanzar(s: Sensacion): boolean {
+export function avanzar(s: Sensacion, azar = Math.random): boolean {
   for (const p of s.particulas) {
     p.x += p.vx;
     p.y += p.vy;
@@ -40,6 +40,10 @@ export function avanzar(s: Sensacion): boolean {
   }
   s.particulas = s.particulas.filter((p) => p.vida > 0);
   if (s.temblor > 0) s.temblor = Math.max(0, s.temblor - 0.25);
+  // El temblor cambia por paso, no por fotograma: igual en monitores de 60 y de 144 Hz.
+  const a = Math.ceil(s.temblor);
+  s.dx = a && Math.round((azar() * 2 - 1) * a);
+  s.dy = a && Math.round((azar() * 2 - 1) * a);
   if (s.pausa > 0) {
     s.pausa--;
     return true;
@@ -48,8 +52,6 @@ export function avanzar(s: Sensacion): boolean {
 }
 
 /** Desplazamiento de la cámara en píxeles de juego enteros, para no perder la nitidez. */
-export function desplazamiento(s: Sensacion, azar = Math.random): { x: number; y: number } {
-  const a = Math.ceil(s.temblor);
-  if (a === 0) return { x: 0, y: 0 };
-  return { x: Math.round((azar() * 2 - 1) * a), y: Math.round((azar() * 2 - 1) * a) };
+export function desplazamiento(s: Sensacion): { x: number; y: number } {
+  return { x: s.dx, y: s.dy };
 }

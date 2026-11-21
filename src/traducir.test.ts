@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   BOTONES_ACCION, BOTONES_MOVER, TECLAS_ACCION, TECLAS_MOVER,
-  flancos, joystick, limitar, sumar, zonaMuerta,
+  esTeclaDeJuego, flancos, joystick, limitar, sumar, zonaMuerta,
 } from './traducir';
 
 describe('teclado', () => {
@@ -59,5 +59,28 @@ describe('joystick táctil', () => {
   });
   it('un temblor pequeño del dedo no mueve', () => {
     expect(joystick(3, -3, 48)).toEqual({ x: 0, y: 0 });
+  });
+});
+
+describe('atajos del navegador', () => {
+  const tecla = (code: string, mods: Partial<Record<'ctrlKey' | 'metaKey' | 'altKey', boolean>> = {}) =>
+    ({ code, ctrlKey: false, metaKey: false, altKey: false, ...mods });
+  it('las teclas del juego cuentan solas', () => {
+    expect(esTeclaDeJuego(tecla('KeyW'))).toBe(true);
+    expect(esTeclaDeJuego(tecla('Space'))).toBe(true);
+  });
+  it('con Ctrl, Cmd o Alt no son del juego', () => {
+    expect(esTeclaDeJuego(tecla('KeyW', { ctrlKey: true }))).toBe(false);
+    expect(esTeclaDeJuego(tecla('KeyD', { metaKey: true }))).toBe(false);
+    expect(esTeclaDeJuego(tecla('ArrowLeft', { altKey: true }))).toBe(false);
+  });
+  it('otras teclas no son del juego', () => {
+    expect(esTeclaDeJuego(tecla('Tab'))).toBe(false);
+    expect(esTeclaDeJuego(tecla('constructor'))).toBe(false);
+  });
+  it('Espacio se deja al botón, casilla o desplegable con foco', () => {
+    for (const tagName of ['BUTTON', 'INPUT', 'SUMMARY']) expect(esTeclaDeJuego(tecla('Space'), { tagName } as unknown as EventTarget)).toBe(false);
+    expect(esTeclaDeJuego(tecla('Space'), { tagName: 'BODY' } as unknown as EventTarget)).toBe(true);
+    expect(esTeclaDeJuego(tecla('KeyW'), { tagName: 'BUTTON' } as unknown as EventTarget)).toBe(true);
   });
 });

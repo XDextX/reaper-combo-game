@@ -34,7 +34,8 @@ export function crearInterfaz(combos: Combo[]) {
     /** Llamar al completar un combo: se ilumina un momento y se anuncia una vez. */
     combo(c: Combo, t: number) {
       hecho = { combo: c, hasta: t + DESTACAR };
-      aviso.textContent = c.nombre;
+      // Un espacio invisible alterno hace que el lector anuncie también el mismo combo dos veces seguidas.
+      aviso.textContent = aviso.textContent === c.nombre ? `${c.nombre}\u200b` : c.nombre;
     },
     /** Pinta el estado; solo toca el DOM si algo cambió. */
     actualizar(historial: readonly Accion[], golpes: number, multiplicador: number, t: number) {
@@ -51,7 +52,7 @@ export function crearInterfaz(combos: Combo[]) {
           else p.removeAttribute('aria-current');
         });
       });
-      contador.textContent = golpes > 0 ? `${golpes} golpes · ×${multiplicador}` : '';
+      contador.textContent = golpes > 0 ? `${golpes} ${golpes === 1 ? 'golpe' : 'golpes'} · ×${multiplicador}` : '';
     },
   };
 }

@@ -18,10 +18,14 @@ export function lado(n: number): number {
   return Math.min(Math.max(1, Math.round(n)), MAX_LADO);
 }
 
-/** Escala y desplazamiento entero, en píxeles de dispositivo, para centrar la arena. */
-export function encuadre(ancho: number, alto: number): { e: number; x: number; y: number } {
-  const e = escala(ancho, alto);
-  return { e, x: Math.floor((ancho - ANCHO * e) / 2), y: Math.floor((alto - ALTO * e) / 2) };
+/**
+ * Escala y desplazamiento entero, en píxeles de dispositivo, para centrar la arena.
+ * `reserva` deja libre una columna a la derecha (los botones táctiles).
+ */
+export function encuadre(ancho: number, alto: number, reserva = 0): { e: number; x: number; y: number } {
+  const libre = Math.max(1, ancho - reserva);
+  const e = escala(libre, alto);
+  return { e, x: Math.floor((libre - ANCHO * e) / 2), y: Math.floor((alto - ALTO * e) / 2) };
 }
 
 /**

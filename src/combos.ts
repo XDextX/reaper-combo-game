@@ -40,6 +40,7 @@ export function avance(historial: readonly Accion[], combo: Combo): number {
 export function crearDetector(combos = COMBOS) {
   let historial: Accion[] = [];
   let ultima = -Infinity;
+  const largoMax = Math.max(...combos.map((c) => c.secuencia.length));
   return {
     get historial(): readonly Accion[] { return historial; },
     /** Lo que sigue vivo en el instante t: pasada la ventana, nada. */
@@ -47,7 +48,7 @@ export function crearDetector(combos = COMBOS) {
     registrar(p: Pulsacion): Combo | null {
       if (p.t - ultima > VENTANA) historial = [];
       ultima = p.t;
-      historial.push(p.accion);
+      historial = [...historial, p.accion].slice(-largoMax);
       const combo = buscar(historial, combos);
       if (combo) historial = []; // un combo cerrado no presta acciones al siguiente
       return combo;

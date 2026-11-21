@@ -53,14 +53,14 @@ Una sola capa de entrada traduce teclado, mando y táctil a las mismas acciones 
 
 La tecla se lee por su posición física (`KeyboardEvent.code`), así que WASD, J y K caen en el mismo sitio con un teclado AZERTY.
 
-**Pantalla.** La arena mide 320×180 y se escala por el mayor entero de píxeles de dispositivo que cabe, centrada y con bandas oscuras; así todos los píxeles miden lo mismo. Si la ventana es más pequeña que 320×180, se usa una escala fraccionaria para no recortar.
+**Pantalla.** La arena mide 320×180 y se escala por el mayor entero de píxeles de dispositivo que cabe en la ventana menos una columna de 160 px a la derecha, la del HUD, para que este no la tape. Queda centrada en el resto, con bandas oscuras; así todos los píxeles miden lo mismo. Si la ventana es más pequeña que 320×180, se usa una escala fraccionaria para no recortar.
 
-**Móvil.** Se juega en apaisado: el joystick va en la banda izquierda y L, P y E en la derecha. En vertical se muestra un aviso en HTML: «Gira el teléfono». Los controles y el canvas llevan `touch-action: none`. La pantalla completa es opcional, no imprescindible (en iPhone no funciona).
+**Móvil.** Se juega en apaisado. La arena deja una columna de 160 px a la derecha, con L, P y E abajo y el HUD plegado arriba; el joystick flota en la parte izquierda de la pantalla. En vertical el juego se pausa y muestra un aviso en HTML: «Gira el teléfono». Los controles y el canvas llevan `touch-action: none`. La pantalla completa es opcional, no imprescindible (en iPhone no funciona).
 
 ## Estilo visual
 
 - Pixel art oscuro, con fotogramas de 32×32 escalados sin suavizado.
-- Paleta: fondo casi negro, el espíritu en cian pálido y los golpes en magenta.
+- Paleta: fondo casi negro, el espíritu en blanco espectral (#eef6f8) con sombras cian, y los golpes en magenta.
 - Las hojas de sprites se dibujan con Lienzo, usando el elemento `pixels` y `spritesheet` / `sheetFrame`. Lienzo saca a la vez la hoja `.png` y su `.kit.json`. Los diseños de las hojas se generan con `assets/fuentes/hojas.py` y se guardan en `assets/fuentes/`, para que el dueño pueda abrirlos en el editor de Lienzo. Se renderizan con el comando de Lienzo directamente en `assets/` (por ejemplo, `node <lienzo>/lienzo.js render assets/fuentes/espiritu.json -o assets/espiritu.png`).
 
 | Hoja | Animaciones (fotogramas) |
@@ -74,8 +74,9 @@ El juego lee las regiones directamente del `.kit.json` generado. Un mismo mapa s
 
 ## Accesibilidad y movimiento
 
-- Con `prefers-reduced-motion` no hay temblor de pantalla, o es de 1 px. El juego tiene además una opción para quitarlo.
-- Los destellos solo afectan al muñeco y son como mucho 3 por segundo (WCAG 2.3.1).
+- La casilla «Temblor de pantalla» lo apaga del todo. Con `prefers-reduced-motion` el temblor no pasa de 1 px.
+- Los destellos solo afectan a los muñecos y son como mucho 3 por segundo en toda la pantalla (WCAG 2.3.1).
+- El nombre del combo se anuncia una vez (aria-live="polite") cuando sale el golpe de remate, aunque no alcance a ningún muñeco; el mismo combo dos veces seguidas se anuncia las dos.
 - La lista de combos y la ayuda de controles van en HTML encima del canvas. El paso actual se marca con `aria-current`, sin anunciarse en cada golpe.
 - L, P y E no se distinguen solo por color: cada uno lleva su letra o su forma.
 - El canvas lleva `role="img"` y una etiqueta. El límite de la arena tiene un contraste de al menos 3:1 con el fondo.

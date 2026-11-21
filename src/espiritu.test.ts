@@ -51,6 +51,26 @@ describe('estados', () => {
     pasos(e, DURACION.L - 2);
     expect([e.estado, e.accion]).toEqual(['atacando', 'P']);
   });
+  it('un combo pendiente no se pierde aunque llegue otra pulsación', () => {
+    const e = crearEspiritu(100, 100);
+    pedir(e, 'L');
+    pedir(e, 'P', combo('Juicio'));
+    pedir(e, 'L');
+    pasos(e, DURACION.L);
+    expect([e.accion, e.combo?.nombre]).toEqual(['P', 'Juicio']);
+  });
+  it('machacando, el remate de un combo no se pierde aunque la cola esté llena', () => {
+    const e = crearEspiritu(100, 100);
+    pedir(e, 'L');
+    for (let i = 0; i < 5; i++) pedir(e, 'L');
+    pedir(e, 'P', combo('Guadañazo'));
+    const golpes: Golpe[] = [];
+    for (let i = 0; i < 200; i++) {
+      const g = actualizar(e, QUIETO);
+      if (g) golpes.push(g);
+    }
+    expect(golpes.at(-1)?.combo?.nombre).toBe('Guadañazo');
+  });
   it('no sale de la arena', () => {
     const e = crearEspiritu(LIMITES.x1, 100);
     pasos(e, 10, { x: 1, y: 0 });

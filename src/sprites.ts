@@ -28,7 +28,7 @@ export const HOJAS = {
 /** Dibuja un fotograma con su esquina en (x, y) respecto al origen actual; `espejo` lo voltea en horizontal. */
 export function pintar(ctx: CanvasRenderingContext2D, hoja: Hoja, nombre: string, x: number, y: number, espejo = false): void {
   const r = hoja.fotogramas[nombre];
-  if (!r || !hoja.img.complete) return;
+  if (!r || !hoja.img.complete || hoja.img.naturalWidth === 0) return; // sin cargar o rota: no se pinta
   ctx.save();
   if (espejo) {
     ctx.scale(-1, 1);

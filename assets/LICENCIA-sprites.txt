@@ -1,2 +1,2 @@
 Sprites originales de Reaper Combo Game, dibujados con Lienzo a partir de assets/fuentes/.
-Se distribuyen con la misma licencia que el resto del repositorio.
+Se distribuyen con la licencia MIT del repositorio: ver LICENSE en la raíz.
