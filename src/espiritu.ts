@@ -1,5 +1,6 @@
 // El espíritu: máquina de estados, movimiento y golpes (spec, «Alcance» y «Combos»).
 import type { Combo } from './combos';
+import { ALTO, ANCHO } from './pantalla';
 import { limitar, type Accion, type Vector } from './traducir';
 
 export type Estado = 'quieto' | 'andar' | 'atacando' | 'esquivando';
@@ -11,7 +12,7 @@ export const DURACION: Record<Accion, number> = { L: 12, P: 22, E: 14 };
 export const ACTIVO: Record<'L' | 'P', number> = { L: 4, P: 10 };
 const VELOCIDAD = 1.2;
 const VEL_ESQUIVA = 3;
-export const LIMITES = { x0: 16, y0: 20, x1: 304, y1: 166 };
+export const LIMITES = { x0: 16, y0: 20, x1: ANCHO - 16, y1: ALTO - 14 };
 const MAX_ESPERA = 3;
 
 type Forma = { w: number; h: number; empuje: number; centrado?: boolean; avance?: number };

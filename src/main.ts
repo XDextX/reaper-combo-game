@@ -6,7 +6,7 @@ import { DESTELLO, actualizarMuneco, cajaMuneco, crearLimiteDestellos, crearMune
 import { crearInterfaz } from './interfaz';
 import { ANCHO, ALTO, encuadre, seguirPantalla } from './pantalla';
 import { avanzar, crearSensacion, desplazamiento, impacto } from './sensacion';
-import { fotogramaEnBucle, fotogramaPorAvance } from './animacion';
+import { direccion, fotogramaEnBucle, fotogramaPorAvance } from './animacion';
 import { HOJAS, pintar } from './sprites';
 
 const canvas = document.querySelector<HTMLCanvasElement>('#juego')!;
@@ -23,8 +23,8 @@ seguirPantalla(canvas, (ancho, alto) => {
   dibujar(); // y lo borra: sin esto queda un fotograma en blanco
 });
 
-const espiritu = crearEspiritu(80, ALTO / 2);
-const munecos = [crearMuneco(200, 60), crearMuneco(240, 95), crearMuneco(200, 130)];
+const espiritu = crearEspiritu(120, ALTO / 2);
+const munecos = [crearMuneco(300, 90), crearMuneco(360, 142), crearMuneco(300, 195)];
 const detector = crearDetector();
 const contador = crearContador();
 const interfaz = crearInterfaz(COMBOS);
@@ -87,20 +87,22 @@ function actualizar(): void {
   interfaz.actualizar(detector.pendiente(ahora), contador.golpes, contador.multiplicador, ahora);
 }
 
-/** Animación del espíritu según su estado. */
+/** Animación del espíritu según su estado y hacia dónde mira (los de lado no llevan prefijo). */
 function fotogramaEspiritu(e: Espiritu): string {
   const f = HOJAS.espiritu.fotogramas;
-  if (e.estado === 'atacando') return fotogramaPorAvance(f, `golpe-${e.accion}`, e.paso / DURACION[e.accion!]);
-  if (e.estado === 'esquivando') return fotogramaPorAvance(f, 'esquiva', e.paso / DURACION.E);
-  if (e.estado === 'andar') return fotogramaEnBucle(f, 'andar', tick, 8);
-  return fotogramaEnBucle(f, 'quieto', tick, 30);
+  const dir = direccion(e.mira);
+  const p = dir === 'lado' ? '' : `${dir}-`;
+  if (e.estado === 'atacando') return fotogramaPorAvance(f, `${p}golpe-${e.accion}`, e.paso / DURACION[e.accion!]);
+  if (e.estado === 'esquivando') return fotogramaPorAvance(f, `${p}esquiva`, e.paso / DURACION.E);
+  if (e.estado === 'andar') return fotogramaEnBucle(f, `${p}andar`, tick, 8);
+  return fotogramaEnBucle(f, `${p}quieto`, tick, 30);
 }
 
 function dibujar(): void {
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.fillStyle = '#07070b';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-  // A partir de aquí se dibuja en píxeles de juego (320×180), siempre en posiciones enteras.
+  // A partir de aquí se dibuja en píxeles de juego (480×270), siempre en posiciones enteras.
   const d = desplazamiento(sensacion);
   ctx.setTransform(marco.e, 0, 0, marco.e, marco.x + d.x * marco.e, marco.y + d.y * marco.e);
   ctx.fillStyle = '#12121a'; // se ve mientras cargan las hojas
@@ -127,9 +129,11 @@ function dibujar(): void {
       pintar(ctx, HOJAS.muneco, f, Math.round(m.x) - 16, Math.round(m.y) - 14, m.vx < 0);
     } })),
     { y: espiritu.y, pinta: () => {
-      // El cuerpo del espíritu está en (13, 18) dentro de su fotograma.
-      const espejo = espiritu.mira.x < 0;
-      pintar(ctx, HOJAS.espiritu, fotogramaEspiritu(espiritu), Math.round(espiritu.x) - (espejo ? 18 : 13), Math.round(espiritu.y) - 18, espejo);
+      // El cuerpo está en (13, 18) dentro del fotograma de lado y en (16, 18) en los de frente y espalda.
+      const lado = direccion(espiritu.mira) === 'lado';
+      const espejo = lado && espiritu.mira.x < 0;
+      const cx = !lado ? 16 : espejo ? 18 : 13;
+      pintar(ctx, HOJAS.espiritu, fotogramaEspiritu(espiritu), Math.round(espiritu.x) - cx, Math.round(espiritu.y) - 18, espejo);
     } },
   ];
   figuras.sort((a, b) => a.y - b.y).forEach((f) => f.pinta());

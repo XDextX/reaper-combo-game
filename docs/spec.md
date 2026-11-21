@@ -53,13 +53,14 @@ Una sola capa de entrada traduce teclado, mando y táctil a las mismas acciones 
 
 La tecla se lee por su posición física (`KeyboardEvent.code`), así que WASD, J y K caen en el mismo sitio con un teclado AZERTY.
 
-**Pantalla.** La arena mide 320×180 y se escala por el mayor entero de píxeles de dispositivo que cabe en la ventana menos una columna de 160 px a la derecha, la del HUD, para que este no la tape. Queda centrada en el resto, con bandas oscuras; así todos los píxeles miden lo mismo. Si la ventana es más pequeña que 320×180, se usa una escala fraccionaria para no recortar.
+**Pantalla.** La arena mide 480×270 y se escala por el mayor entero de píxeles de dispositivo que cabe en la ventana menos una columna de 160 px a la derecha, la del HUD, para que este no la tape. Queda centrada en el resto, con bandas oscuras; así todos los píxeles miden lo mismo. Si la ventana es más pequeña que 480×270, se usa una escala fraccionaria para no recortar.
 
 **Móvil.** Se juega en apaisado. La arena deja una columna de 160 px a la derecha, con L, P y E abajo y el HUD plegado arriba; el joystick flota en la parte izquierda de la pantalla. En vertical el juego se pausa y muestra un aviso en HTML: «Gira el teléfono». Los controles y el canvas llevan `touch-action: none`. La pantalla completa es opcional, no imprescindible (en iPhone no funciona).
 
 ## Estilo visual
 
 - Pixel art oscuro, con fotogramas de 32×32 escalados sin suavizado.
+- El espíritu tiene dibujos para cuatro direcciones: arriba, abajo y lado. Mirar a la izquierda es el lado volteado. Todas sus animaciones existen en las tres versiones (quieto, andar, golpes, esquiva y daño). Al moverse en diagonal se usa la dirección del eje con más peso, y en un empate gana el lado. Los golpes siguen alcanzando hacia donde mira, en 8 direcciones.
 - Paleta: fondo casi negro, el espíritu en blanco espectral (#eef6f8) con sombras cian, y los golpes en magenta.
 - Las hojas de sprites se dibujan con Lienzo, usando el elemento `pixels` y `spritesheet` / `sheetFrame`. Lienzo saca a la vez la hoja `.png` y su `.kit.json`. Los diseños de las hojas se generan con `assets/fuentes/hojas.py` y se guardan en `assets/fuentes/`, para que el dueño pueda abrirlos en el editor de Lienzo. Se renderizan con el comando de Lienzo directamente en `assets/` (por ejemplo, `node <lienzo>/lienzo.js render assets/fuentes/espiritu.json -o assets/espiritu.png`).
 

@@ -22,24 +22,24 @@ describe('repartir', () => {
 
 describe('escala', () => {
   it('usa la mayor escala entera que cabe', () => {
-    expect(escala(1920, 1080)).toBe(6);
-    expect(escala(1000, 1080)).toBe(3);
+    expect(escala(1920, 1080)).toBe(4);
+    expect(escala(1000, 1080)).toBe(2);
   });
   it('en píxeles de dispositivo con DPR 1,5 sigue siendo entera', () => {
-    expect(escala(1280 * 1.5, 720 * 1.5)).toBe(6);
+    expect(escala(1280 * 1.5, 720 * 1.5)).toBe(4);
   });
   it('baja de 1 con una fracción para no recortar', () => {
-    expect(escala(160, 180)).toBe(0.5);
+    expect(escala(240, 270)).toBe(0.5);
   });
 });
 
 describe('encuadre', () => {
   // Casos de QA con DPR no entero, ya en píxeles de dispositivo (ventana CSS × DPR).
   it.each([
-    [2304, 1296, 7, 32, 18], // 1536×864 a 1,5
-    [3360, 1890, 10, 80, 45], // 1280×720 a 2,625
-    [5040, 2835, 15, 120, 67], // 1920×1080 a 2,625
-    [1015, 469, 2, 187, 54], // 812×375 a 1,25
+    [2304, 1296, 4, 192, 108], // 1536×864 a 1,5
+    [3360, 1890, 7, 0, 0], // 1280×720 a 2,625
+    [5040, 2835, 10, 120, 67], // 1920×1080 a 2,625
+    [1015, 469, 1, 267, 99], // 812×375 a 1,25
   ])('%i×%i da escala %i en (%i, %i), en píxeles enteros', (ancho, alto, e, x, y) => {
     expect(encuadre(ancho, alto)).toEqual({ e, x, y });
   });
@@ -57,11 +57,11 @@ describe('lado', () => {
 
 describe('encuadre táctil con columna reservada', () => {
   it('812×375 a DPR 3: misma escala, la arena pasa a la izquierda', () => {
-    expect(encuadre(2436, 1125, 160 * 3)).toEqual({ e: 6, x: 18, y: 22 });
+    expect(encuadre(2436, 1125, 160 * 3)).toEqual({ e: 4, x: 18, y: 22 });
   });
-  it('640×360 a DPR 2: con 160 px reservados la escala queda en 3 sin tapar los botones', () => {
+  it('640×360 a DPR 2: con 160 px reservados la escala queda en 2 sin tapar los botones', () => {
     const r = encuadre(1280, 720, 160 * 2);
-    expect(r.e).toBe(3);
-    expect(r.x + 320 * r.e).toBeLessThanOrEqual(1280 - 320);
+    expect(r.e).toBe(2);
+    expect(r.x + 480 * r.e).toBeLessThanOrEqual(1280 - 320);
   });
 });

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import kit from '../assets/espiritu.kit.json';
 import { cuantos, fotogramaEnBucle, fotogramaPorAvance } from './animacion';
+import { direccion } from './animacion';
 
 const f = kit.sprites.espiritu.frames;
 
@@ -22,5 +23,15 @@ describe('elegir fotograma', () => {
   });
   it('golpe-L no cuenta los de golpe-P', () => {
     expect(cuantos(f, 'golpe')).toBe(0);
+  });
+});
+
+describe('direccion', () => {
+  it('elige el eje con más peso y el lado en las diagonales exactas', () => {
+    expect(direccion({ x: 1, y: 0 })).toBe('lado');
+    expect(direccion({ x: -1, y: 0 })).toBe('lado');
+    expect(direccion({ x: 0, y: -1 })).toBe('arriba');
+    expect(direccion({ x: 0.3, y: 0.95 })).toBe('abajo');
+    expect(direccion({ x: Math.SQRT1_2, y: -Math.SQRT1_2 })).toBe('lado');
   });
 });

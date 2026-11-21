@@ -110,6 +110,82 @@ def espiritu(dy=0, cola=0, gx=0, gy=0, alta=0, arco=None, efecto=None):
     return g
 
 
+def tajo_vertical(g, radio, ancho, abajo, tenue=False):
+    """Arco del corte por debajo (de frente) o por encima (de espaldas) del espíritu."""
+    ch = "r" if tenue else "M"
+    for y in range(LADO):
+        for x in range(LADO):
+            d = math.hypot(x - 16, y - 16)
+            fuera = y >= 21 if abajo else y <= 9
+            if radio - ancho <= d <= radio and fuera and g[y][x] == ".":
+                g[y][x] = ch
+
+
+def espiritu_vertical(espalda, dy=0, cola=0, gx=0, gy=0, alta=0, arco=None, efecto=None):
+    """El espíritu de frente (mira abajo) o de espaldas (mira arriba), centrado en x = 16."""
+    g = lienzo()
+    if espalda:  # de espaldas la guadaña queda detrás del cuerpo
+        guadana(g, gx - 3, dy + gy, alta)
+    for y in range(LADO):
+        for x in range(LADO):
+            if (x - 16) ** 2 + (y - 11 - dy) ** 2 <= 7.3 ** 2:
+                pon(g, x, y, "c")
+    for y in range(16 + dy, 28 + dy):
+        w = 7 - (y - 16 - dy) * 0.4
+        for x in range(round(16 - w), round(16 + w) + 1):
+            pon(g, x, y, "c")
+    for i, x in enumerate(range(10, 22, 3)):
+        largo = 2 if (i + cola) % 2 == 0 else 1
+        for y in range(28 + dy, 28 + dy + largo):
+            pon(g, x, y, "c")
+            pon(g, x + 1, y, "c")
+    for y in range(LADO):  # sombra cian en el lado derecho
+        for x in range(LADO):
+            if g[y][x] == "c" and x >= 20 and (x - 16) ** 2 + (y - 11 - dy) ** 2 > 3 ** 2:
+                g[y][x] = "s"
+    for x, y in [(12, 7), (13, 6), (14, 5), (12, 8)]:
+        pon(g, x, y + dy, "C")
+    if espalda:
+        for y in range(6, 24):  # costura de la capucha
+            pon(g, 16, y + dy, "s")
+    else:
+        for y in range(LADO):
+            for x in range(LADO):
+                if ((x - 16) / 4.2) ** 2 + ((y - 12.5 - dy) / 3.3) ** 2 <= 1:
+                    pon(g, x, y, "k")
+        for ox in (13, 17):
+            for x, y in ((ox, 12), (ox + 1, 12), (ox, 13), (ox + 1, 13)):
+                pon(g, x, y + dy, "m")
+            pon(g, ox, 12 + dy, "w")
+        for x, y in [(22, 18), (23, 18), (22, 19), (23, 19)]:  # mano
+            pon(g, x + gx, y + dy + gy, "c")
+        guadana(g, gx + 2, dy + gy, alta)
+    if arco:
+        tajo_vertical(g, arco[0], arco[1], not espalda, *arco[2:])
+    contorno(g)
+    if efecto == "translucido":
+        cambio = {"c": "f", "C": "f", "s": "F", "o": ".", "h": ".", "b": ".", "M": "."}
+        g = [[cambio.get(ch, ch) for ch in fila] for fila in g]
+    elif efecto == "destello":
+        g = [["C" if ch in "cs" else ch for ch in fila] for fila in g]
+    return g
+
+
+def juego_vertical(espalda):
+    v = lambda **k: espiritu_vertical(espalda, **k)
+    pre = "arriba" if espalda else "abajo"
+    return [(f"{pre}-{n}", g) for n, g in [
+        ("quieto-1", v()), ("quieto-2", v(dy=1, cola=1)),
+        ("andar-1", v(gy=-1)), ("andar-2", v(dy=1, cola=1)), ("andar-3", v(gy=1)), ("andar-4", v(dy=1, cola=1)),
+        ("golpe-L-1", v(gy=-1, alta=2)), ("golpe-L-2", v(gx=-1, arco=(13, 3))), ("golpe-L-3", v(arco=(13, 2, True))),
+        ("golpe-P-1", v(gx=1, alta=3)), ("golpe-P-2", v(gx=1, alta=4, dy=1)), ("golpe-P-3", v(gx=-2, arco=(15, 5))),
+        ("golpe-P-4", v(arco=(15, 3, True))),
+        ("esquiva-1", v(efecto="translucido")), ("esquiva-2", v(dy=1, cola=1, efecto="translucido")),
+        ("esquiva-3", v(cola=1, efecto="translucido")),
+        ("dano-1", v(efecto="destello")), ("dano-2", v(gx=-1)),
+    ]]
+
+
 def muneco(inclina=0, destello=False):
     g = lienzo()
     madera, saco, cuerda = "p", "q", "t"
@@ -204,6 +280,8 @@ HOJAS = {
         ("esquiva-3", espiritu(cola=1, efecto="translucido")),
         ("dano-1", espiritu(efecto="destello")),
         ("dano-2", espiritu(gx=-1)),
+        *juego_vertical(False),
+        *juego_vertical(True),
     ],
     "muneco": [
         ("quieto-1", muneco()),

@@ -1,5 +1,11 @@
 // Qué fotograma toca en cada animación, sin depender del navegador.
 
+/** Qué dibujo usar según hacia dónde mira: gana el eje con más peso y, si empatan, el lado. */
+export function direccion(mira: { x: number; y: number }): 'lado' | 'arriba' | 'abajo' {
+  if (Math.abs(mira.y) <= Math.abs(mira.x)) return 'lado';
+  return mira.y < 0 ? 'arriba' : 'abajo';
+}
+
 /** Cuántos fotogramas tiene una animación: los que se llaman `nombre-1`, `nombre-2`… */
 export function cuantos(fotogramas: Record<string, unknown>, animacion: string): number {
   const patron = new RegExp(`^${animacion}-\\d+$`);

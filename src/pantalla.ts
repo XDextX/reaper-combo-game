@@ -1,5 +1,5 @@
-export const ANCHO = 320;
-export const ALTO = 180;
+export const ANCHO = 480;
+export const ALTO = 270;
 
 /**
  * Píxeles de dispositivo por píxel de juego: el mayor entero que cabe, para que todos

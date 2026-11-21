@@ -112,6 +112,222 @@
           "y": 0,
           "width": 32,
           "height": 32
+        },
+        "abajo-quieto-1": {
+          "x": 576,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "abajo-quieto-2": {
+          "x": 608,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "abajo-andar-1": {
+          "x": 640,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "abajo-andar-2": {
+          "x": 672,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "abajo-andar-3": {
+          "x": 704,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "abajo-andar-4": {
+          "x": 736,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "abajo-golpe-L-1": {
+          "x": 768,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "abajo-golpe-L-2": {
+          "x": 800,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "abajo-golpe-L-3": {
+          "x": 832,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "abajo-golpe-P-1": {
+          "x": 864,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "abajo-golpe-P-2": {
+          "x": 896,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "abajo-golpe-P-3": {
+          "x": 928,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "abajo-golpe-P-4": {
+          "x": 960,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "abajo-esquiva-1": {
+          "x": 992,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "abajo-esquiva-2": {
+          "x": 1024,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "abajo-esquiva-3": {
+          "x": 1056,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "abajo-dano-1": {
+          "x": 1088,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "abajo-dano-2": {
+          "x": 1120,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "arriba-quieto-1": {
+          "x": 1152,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "arriba-quieto-2": {
+          "x": 1184,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "arriba-andar-1": {
+          "x": 1216,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "arriba-andar-2": {
+          "x": 1248,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "arriba-andar-3": {
+          "x": 1280,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "arriba-andar-4": {
+          "x": 1312,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "arriba-golpe-L-1": {
+          "x": 1344,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "arriba-golpe-L-2": {
+          "x": 1376,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "arriba-golpe-L-3": {
+          "x": 1408,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "arriba-golpe-P-1": {
+          "x": 1440,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "arriba-golpe-P-2": {
+          "x": 1472,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "arriba-golpe-P-3": {
+          "x": 1504,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "arriba-golpe-P-4": {
+          "x": 1536,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "arriba-esquiva-1": {
+          "x": 1568,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "arriba-esquiva-2": {
+          "x": 1600,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "arriba-esquiva-3": {
+          "x": 1632,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "arriba-dano-1": {
+          "x": 1664,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "arriba-dano-2": {
+          "x": 1696,
+          "y": 0,
+          "width": 32,
+          "height": 32
         }
       }
     }
