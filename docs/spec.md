@@ -40,6 +40,24 @@ Los nombres y los tiempos son valores iniciales; se ajustan jugando y viven en u
 
 **2. Contador y multiplicador.** Cada golpe que conecta suma 1. El multiplicador sube un nivel cada 10 golpes, hasta x4. El contador se rompe tras 2 s sin conectar un golpe. Como en la v1 los muñecos no atacan, la regla de que recibir daño rompe el contador queda escrita pero sin uso.
 
+## Combate
+
+Aprobado por el dueño el 2026-11-20.
+
+**Modos.** Un botón del HUD alterna entre *Práctica* (los muñecos de la v1) y *Combate*. El juego empieza en Combate.
+
+**Vida del espíritu.** Aguanta 5 golpes y no recupera vida. Al recibir uno parpadea durante 1 s y en ese tiempo no le hacen daño. Mientras esquiva (E) tampoco recibe daño. Cuando le dan, el contador de combo se rompe. Al llegar a cero aparece la pantalla «Has caído», con los golpes y el mejor combo de la partida y un botón para reintentar (o pulsar J). La vida se muestra en el HUD y se anuncia a los lectores de pantalla cuando cambia.
+
+**Enemigos.** Siempre hay 3 en la arena. Cuando uno muere, aparece otro por un borde al cabo de 1 s. El tipo se elige al azar entre tres:
+
+- **Segador menor** (cuerpo a cuerpo): 3 de vida. Se acerca y, antes de golpear, se queda quieto y brilla durante 0,5 s, lo que da tiempo a esquivar.
+- **Lanzador** (a distancia): 2 de vida. Se mantiene a unos 120 px y dispara un proyectil lento cada 2 s, con un aviso previo. El proyectil se esquiva o se corta con un golpe.
+- **Escudado**: 4 de vida. Bloquea los golpes ligeros que le llegan de frente, con una chispa gris y sin daño. P, los combos y los golpes por la espalda sí le hacen daño.
+
+**Daño de los golpes.** L quita 1, P quita 2 y el remate de un combo quita 3. Cada enemigo tiene sus propios fotogramas de quieto, andar, aviso, ataque, golpeado y muerte. Los dibujos se hacen con Lienzo en 4 direcciones, igual que el espíritu, y el dueño los aprueba antes de usarlos.
+
+Fuera de esta versión: oleadas, jefe, puntuación guardada y dificultad creciente.
+
 ## Controles
 
 Una sola capa de entrada traduce teclado, mando y táctil a las mismas acciones (mover, L, P, E). El resto del juego no sabe de dónde vienen.
