@@ -25,6 +25,9 @@
       .paso-E { border-style: dashed; border-radius: 3px 8px; }
       .paso.hecho { color: #07070b; background: #9fe6f0; border-color: #9fe6f0; }
       li.completo .paso { background: #d0459f; border-color: #d0459f; color: #fff; }
+      #modo { margin: 0 0 4px; padding: 2px 8px; font: 600 12px system-ui, sans-serif; color: #07070b;
+        background: #9fe6f0; border: 0; border-radius: 4px; cursor: pointer; }
+      #vida[hidden] { display: none; }
       #vida { margin: 0; color: #ff7fd4; font-size: 16px; letter-spacing: 2px; }
       #caido { position: fixed; inset: 0; display: grid; place-content: center; gap: 12px; margin: 0;
         background: rgba(7, 7, 11, .85); color: #e8f6f8; font: 500 16px system-ui, sans-serif; text-align: center; }
@@ -69,6 +72,7 @@
   <body>
     <canvas id="juego" role="img" aria-label="Arena de práctica"></canvas>
     <section id="hud" aria-label="Combos">
+      <button type="button" id="modo">Pasar a práctica</button>
       <p id="vida"><span id="corazones" aria-hidden="true"></span><span id="aviso-vida" class="solo-lectores" aria-live="polite"></span></p>
       <p id="contador"></p>
       <details id="lista" open>

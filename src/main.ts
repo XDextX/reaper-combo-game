@@ -27,8 +27,8 @@ seguirPantalla(canvas, (ancho, alto) => {
 
 let espiritu = crearEspiritu(120, ALTO / 2);
 let vida = crearVida();
-// La tarea 3 del plan del combate añade el botón para pasar a práctica (los muñecos).
-const modo: 'combate' | 'practica' = 'combate';
+// Combate (enemigos) o práctica (los muñecos de la v1); el botón del HUD los alterna.
+let modo: 'combate' | 'practica' = 'combate';
 let combate = crearCombate();
 const munecos = [crearMuneco(300, 90), crearMuneco(360, 142), crearMuneco(300, 195)];
 const detector = crearDetector();
@@ -52,7 +52,7 @@ const maxTemblor = () => (!opcionTemblor.checked ? 0 : movimientoReducido.matche
 const destellos = crearLimiteDestellos();
 // Tras un clic de ratón en el HUD el foco vuelve al juego: si no, Espacio abriría el desplegable en vez de esquivar.
 // Con teclado, táctil o lector de pantalla el foco se queda donde está.
-for (const control of document.querySelectorAll<HTMLElement>('#hud summary, #hud label')) {
+for (const control of document.querySelectorAll<HTMLElement>('#hud summary, #hud label, #hud button')) {
   control.addEventListener('pointerup', (e) => {
     if (e.pointerType !== 'mouse') return;
     // Un clic en el texto de la etiqueta deja el foco en su casilla.
@@ -92,6 +92,13 @@ function reintentar(): void {
   botonReintentar.blur(); // el foco no se queda en un botón oculto
 }
 botonReintentar.addEventListener('click', reintentar);
+const botonModo = document.querySelector<HTMLButtonElement>('#modo')!;
+botonModo.addEventListener('click', () => {
+  modo = modo === 'combate' ? 'practica' : 'combate';
+  botonModo.textContent = modo === 'combate' ? 'Pasar a práctica' : 'Pasar a combate';
+  document.querySelector<HTMLElement>('#vida')!.hidden = modo === 'practica'; // en práctica nada hace daño
+  reintentar(); // cada cambio empieza limpio: vida llena y enemigos nuevos
+});
 let tick = 0;
 // Chispas de impacto: un sprite que se reproduce una vez en cada punto alcanzado.
 const VIDA_CHISPA = 12;
