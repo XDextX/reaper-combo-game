@@ -89,7 +89,8 @@ export function actualizarEnemigo(e: Enemigo, objetivo: Vector): Ataque {
       if (e.tipo === 'lanzador') {
         ataque.proyectil = { x: e.x, y: e.y, vx: e.mira.x * VEL_PROYECTIL, vy: e.mira.y * VEL_PROYECTIL, vida: VIDA_PROYECTIL };
         e.recarga = RECARGA;
-        e.estado = 'andar';
+        e.estado = 'recupera'; // se queda quieto un momento tras lanzar (y se ve su animación de ataque)
+        e.t = RECUPERA;
       } else {
         ataque.caja = { x: e.x + e.mira.x * 12 - 10, y: e.y + e.mira.y * 12 - 8, w: 20, h: 16 };
         e.estado = 'recupera';
@@ -126,20 +127,27 @@ export function actualizarProyectil(p: Proyectil): boolean {
   return --p.vida > 0 && p.x > LIMITES.x0 - 8 && p.x < LIMITES.x1 + 8 && p.y > LIMITES.y0 - 8 && p.y < LIMITES.y1 + 8;
 }
 
-/** Enemigo nuevo en un punto al azar de uno de los cuatro bordes. */
-export function aparecer(azar = Math.random): Enemigo {
+export const LEJOS = 80; // un enemigo nuevo no aparece más cerca del espíritu que esto
+
+/** Enemigo nuevo en un punto al azar de uno de los cuatro bordes, lejos de `espiritu` si se puede. */
+export function aparecer(azar = Math.random, espiritu?: Vector): Enemigo {
   const tipo = TIPOS[Math.floor(azar() * TIPOS.length)];
-  const lado = Math.floor(azar() * 4);
-  const t = azar();
-  const x = lado === 0 ? LIMITES.x0 : lado === 1 ? LIMITES.x1 : LIMITES.x0 + t * (LIMITES.x1 - LIMITES.x0);
-  const y = lado === 2 ? LIMITES.y0 : lado === 3 ? LIMITES.y1 : LIMITES.y0 + t * (LIMITES.y1 - LIMITES.y0);
+  let x = 0;
+  let y = 0;
+  for (let intento = 0; intento < 8; intento++) {
+    const lado = Math.floor(azar() * 4);
+    const t = azar();
+    x = lado === 0 ? LIMITES.x0 : lado === 1 ? LIMITES.x1 : LIMITES.x0 + t * (LIMITES.x1 - LIMITES.x0);
+    y = lado === 2 ? LIMITES.y0 : lado === 3 ? LIMITES.y1 : LIMITES.y0 + t * (LIMITES.y1 - LIMITES.y0);
+    if (!espiritu || Math.hypot(x - espiritu.x, y - espiritu.y) >= LEJOS) break;
+  }
   return crearEnemigo(tipo, x, y);
 }
 
 /** La arena del combate: siempre 3 enemigos, contando los que están muriendo o por reaparecer. */
-export function crearCombate(azar = Math.random) {
+export function crearCombate(azar = Math.random, espiritu?: Vector) {
   return {
-    enemigos: Array.from({ length: EN_ARENA }, () => aparecer(azar)),
+    enemigos: Array.from({ length: EN_ARENA }, () => aparecer(azar, espiritu)),
     proyectiles: [] as Proyectil[],
     esperas: [] as number[],
   };
@@ -167,7 +175,7 @@ export function pasoCombate(c: Combate, objetivo: Vector, cuerpo: Caja, corte: C
   for (let i = c.enemigos.length; i < antes; i++) c.esperas.push(ESPERA_REAPARECER);
   c.esperas = c.esperas.map((t) => t - 1).filter((t) => {
     if (t > 0) return true;
-    c.enemigos.push(aparecer(azar));
+    c.enemigos.push(aparecer(azar, objetivo));
     return false;
   });
 }

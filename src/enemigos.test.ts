@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { COMBOS } from './combos';
 import {
+  LEJOS, aparecer,
   AVISO, DISTANCIA_LANZADOR, EN_ARENA, ESPERA_REAPARECER, MUERTE, RECARGA,
   actualizarEnemigo, crearCombate, crearEnemigo, pasoCombate, recibirGolpe, type Enemigo,
 } from './enemigos';
@@ -104,5 +105,14 @@ describe('combate', () => {
     pasoCombate(c, { x: 0, y: 0 }, { x: 0, y: 0, w: 0, h: 0 }, { x: 49, y: 48, w: 6, h: 6 }, () => heridas++);
     expect(c.proyectiles).toEqual([]);
     expect(heridas).toBe(1);
+  });
+});
+
+describe('aparición', () => {
+  it('no aparece pegado al espíritu si está junto a un borde', () => {
+    let n = 0;
+    const azar = () => [0, 0.05, 0, 0.3, 0.5][n++ % 5]; // primero un punto al lado del espíritu
+    const e = aparecer(azar, { x: 20, y: 30 });
+    expect(Math.hypot(e.x - 20, e.y - 30)).toBeGreaterThanOrEqual(LEJOS);
   });
 });

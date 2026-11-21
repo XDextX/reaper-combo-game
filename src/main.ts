@@ -29,7 +29,7 @@ let espiritu = crearEspiritu(120, ALTO / 2);
 let vida = crearVida();
 // Combate (enemigos) o práctica (los muñecos de la v1); el botón del HUD los alterna.
 let modo: 'combate' | 'practica' = 'combate';
-let combate = crearCombate();
+let combate = crearCombate(Math.random, espiritu);
 const munecos = [crearMuneco(300, 90), crearMuneco(360, 142), crearMuneco(300, 195)];
 const detector = crearDetector();
 const contador = crearContador();
@@ -84,7 +84,7 @@ function danarEspiritu(): void {
 function reintentar(): void {
   espiritu = crearEspiritu(120, ALTO / 2);
   vida = crearVida();
-  combate = crearCombate();
+  combate = crearCombate(Math.random, espiritu);
   contador.romper();
   chispas = [];
   caido.hidden = true;
@@ -92,6 +92,10 @@ function reintentar(): void {
   botonReintentar.blur(); // el foco no se queda en un botón oculto
 }
 botonReintentar.addEventListener('click', reintentar);
+// «Has caído» es modal: con Tab el foco no sale de su único botón.
+caido.addEventListener('keydown', (e) => {
+  if (e.key === 'Tab') { e.preventDefault(); botonReintentar.focus(); }
+});
 const botonModo = document.querySelector<HTMLButtonElement>('#modo')!;
 botonModo.addEventListener('click', () => {
   modo = modo === 'combate' ? 'practica' : 'combate';
