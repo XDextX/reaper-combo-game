@@ -125,7 +125,11 @@ function actualizar(): void {
       if (modo === 'combate') {
         const tocados = combate.enemigos.filter((e) => e.estado !== 'muerto' && solapan(golpe.caja, cajaEnemigo(e)));
         alcanzados = [];
+        // El blanco de «golpeado» es un destello: pasa por el mismo límite de 3 por segundo que los muñecos.
+        const destella = tocados.length > 0 && destellos.pedir();
         for (const e of tocados) {
+          if (destella) destellan.add(e);
+          else destellan.delete(e);
           const r = recibirGolpe(e, golpe, espiritu);
           if (r === 'bloqueo') chispas.push({ x: e.x, y: e.y, tipo: 'B', vida: VIDA_CHISPA });
           else alcanzados.push(e);
@@ -165,13 +169,14 @@ function fotogramaEspiritu(e: Espiritu): string {
   return fotogramaEnBucle(f, `${p}quieto`, tick, 30);
 }
 
+const destellan = new WeakSet<Enemigo>(); // enemigos cuyo último golpe recibido destella
 /** Fotograma del enemigo según su estado y hacia dónde mira (los de lado no llevan dirección en el nombre). */
 function fotogramaEnemigo(e: Enemigo): string {
   const f = HOJAS.enemigos.fotogramas;
   const dir = direccion(e.mira);
   const p = `${e.tipo}-${dir === 'lado' ? '' : `${dir}-`}`;
   if (e.estado === 'muerto') return fotogramaPorAvance(f, `${p}muerte`, 1 - e.t / MUERTE);
-  if (e.estado === 'golpeado') return `${p}golpeado-1`;
+  if (e.estado === 'golpeado') return destellan.has(e) ? `${p}golpeado-1` : `${p}quieto-1`;
   if (e.estado === 'aviso') return `${p}aviso-1`;
   if (e.estado === 'recupera') return e.t > RECUPERA - 12 ? fotogramaPorAvance(f, `${p}ataque`, (RECUPERA - e.t) / 12) : `${p}quieto-1`;
   return fotogramaEnBucle(f, `${p}andar`, tick, 10);
@@ -217,7 +222,7 @@ function dibujar(): void {
       pintar(ctx, HOJAS.muneco, f, Math.round(m.x) - 16, Math.round(m.y) - 14, m.vx < 0);
     } })),
     { y: espiritu.y, pinta: () => {
-      if (vida.invulnerable > 0 && Math.floor(vida.invulnerable / 5) % 2) return; // parpadea mientras no le hacen daño
+      if (vida.invulnerable > 0 && Math.floor(vida.invulnerable / 10) % 2) return; // parpadea 3 veces por segundo mientras no le hacen daño
       // El cuerpo está en (13, 18) dentro del fotograma de lado y en (16, 18) en los de frente y espalda.
       const lado = direccion(espiritu.mira) === 'lado';
       const espejo = lado && espiritu.mira.x < 0;

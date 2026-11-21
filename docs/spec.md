@@ -94,7 +94,7 @@ El juego lee las regiones directamente del `.kit.json` generado. Un mismo mapa s
 ## Accesibilidad y movimiento
 
 - La casilla «Temblor de pantalla» lo apaga del todo. Con `prefers-reduced-motion` el temblor no pasa de 1 px.
-- Los destellos solo afectan a los muñecos y son como mucho 3 por segundo en toda la pantalla (WCAG 2.3.1).
+- Los destellos (el blanco de un muñeco o un enemigo golpeado) son como mucho 3 por segundo en toda la pantalla (WCAG 2.3.1). El parpadeo del espíritu herido va a 3 por segundo. El aviso de ataque de un enemigo se ve siempre, aunque pase del límite, porque sin él no hay tiempo para esquivar: dura 0,5 s y ocupa un área pequeña, por debajo del umbral de destello general de WCAG.
 - El nombre del combo se anuncia una vez (aria-live="polite") cuando sale el golpe de remate, aunque no alcance a ningún muñeco; el mismo combo dos veces seguidas se anuncia las dos.
 - La lista de combos y la ayuda de controles van en HTML encima del canvas. El paso actual se marca con `aria-current`, sin anunciarse en cada golpe.
 - L, P y E no se distinguen solo por color: cada uno lleva su letra o su forma.
