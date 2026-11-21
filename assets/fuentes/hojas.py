@@ -260,6 +260,176 @@ def paleta_usada(fotogramas, base):
     return {k: v for k, v in base.items() if k in usados}
 
 
+# --- Enemigos del combate (aprobados por el dueño: un fotograma de frente de cada uno) ---
+PALETA_ENEMIGOS = {
+    ".": "transparent", "o": "#24343c",
+    # segador menor: túnica morada y hoz
+    "u": "#5b2a6e", "U": "#3c1a4a", "k": "#07070b", "m": "#ff3fb8", "h": "#7d8f9a", "b": "#c8d6dc",
+    # lanzador: llama naranja con núcleo
+    "a": "#d08a2a", "A": "#ffb347", "Y": "#fff1c2", "r": "#8a4a14",
+    # escudado: armadura azul y escudo de acero
+    "e": "#4f6fd0", "E": "#2f4590", "s": "#8aa0b8", "S": "#c8d6dc", "x": "#5a6878",
+    "W": "#ffffff", "Z": "#eef6f899", "C": "#ffffff", "c": "#eef6f8",
+}
+
+
+def segador():
+    g = lienzo()
+    for y in range(LADO):
+        for x in range(LADO):
+            if (x - 16) ** 2 + (y - 13) ** 2 <= 6 ** 2:
+                pon(g, x, y, "u")
+    for y in range(17, 28):  # túnica que se abre hacia abajo
+        w = 5 + (y - 17) * 0.5
+        for x in range(round(16 - w), round(16 + w) + 1):
+            pon(g, x, y, "u" if x < 18 else "U")
+    for x in range(10, 23, 3):  # bajo rasgado
+        pon(g, x, 28, "U")
+    for y in range(LADO):
+        for x in range(LADO):
+            if ((x - 16) / 3.6) ** 2 + ((y - 14) / 2.8) ** 2 <= 1:
+                pon(g, x, y, "k")
+    for x, y in ((14, 14), (18, 14)):  # ojos pequeños
+        pon(g, x, y, "m")
+    for y in range(12, 27):  # hoz corta en la mano derecha
+        pon(g, 24, y, "h")
+    for x, y in ((25, 11), (26, 11), (27, 12), (28, 13), (28, 14), (27, 15)):
+        pon(g, x, y, "b")
+    return g
+
+
+def lanzador():
+    g = lienzo()
+    for y in range(LADO):
+        for x in range(LADO):
+            d = (x - 16) ** 2 / 7 ** 2 + (y - 17) ** 2 / 8 ** 2
+            punta = y < 17 and abs(x - 16) <= (y - 4) * 0.55
+            if d <= 1 or (punta and y >= 4):
+                pon(g, x, y, "a")
+    for y in range(LADO):
+        for x in range(LADO):
+            if g[y][x] == "a" and (x - 15) ** 2 / 4 ** 2 + (y - 18) ** 2 / 5 ** 2 <= 1:
+                g[y][x] = "A"
+    for x, y in ((13, 17), (14, 17), (18, 17), (19, 17)):  # ojos huecos
+        pon(g, x, y, "k")
+    for x in range(14, 19):
+        pon(g, x, 21, "r")  # boca
+    for y in range(LADO):  # orbe que lanza, en la mano izquierda
+        for x in range(LADO):
+            if (x - 6) ** 2 + (y - 22) ** 2 <= 2.3 ** 2:
+                pon(g, x, y, "Y")
+    return g
+
+
+def escudado():
+    g = lienzo()
+    for y in range(LADO):  # yelmo
+        for x in range(LADO):
+            if (x - 15) ** 2 + (y - 9) ** 2 <= 5.5 ** 2:
+                pon(g, x, y, "e")
+    for x in range(11, 20):
+        pon(g, x, 9, "k")  # visera
+    pon(g, 13, 9, "m")
+    pon(g, 17, 9, "m")
+    for y in range(14, 28):  # cuerpo ancho
+        for x in range(8, 23):
+            pon(g, x, y, "e" if x < 18 else "E")
+    for x in range(8, 23):
+        pon(g, x, 20, "x")  # cinturón
+    for y in range(28, 31):  # piernas
+        for x in (10, 11, 19, 20):
+            pon(g, x, y, "E")
+    for y in range(13, 30):  # escudo grande delante, a la derecha
+        for x in range(17, 28):
+            borde = y in (13, 29) or x in (17, 27)
+            pon(g, x, y, "S" if borde else "s")
+    for y in range(16, 27):
+        pon(g, 22, y, "S")  # nervio del escudo
+    return g
+
+
+
+CARA = {"segador": "km", "lanzador": "kr", "escudado": "km"}
+ESPALDA = {"segador": "u", "lanzador": "A", "escudado": "e"}  # con qué se tapa la cara de espaldas
+ARMA = {"segador": "hb", "lanzador": "Y", "escudado": "sS"}
+CUERPO = {"segador": "uUo", "lanzador": "aAro", "escudado": "eExo"}
+BRILLO = {"u": "C", "U": "c", "a": "Y", "A": "Y", "r": "A", "e": "C", "E": "c", "x": "s"}  # aviso: se aclara
+
+
+def mover(g, chars, dx, dy):
+    """Mueve los píxeles de `chars` y deja transparente donde estaban."""
+    puntos = [(x, y, g[y][x]) for y in range(LADO) for x in range(LADO) if g[y][x] in chars]
+    for x, y, _ in puntos:
+        g[y][x] = "."
+    for x, y, ch in puntos:
+        pon(g, x + dx, y + dy, ch)
+    return g
+
+
+def recolor(g, cambio):
+    return [[cambio.get(ch, ch) for ch in fila] for fila in g]
+
+
+def vista(tipo, g, direc):
+    """Pasa el dibujo de frente (abajo) a lado (mirando a la derecha) o espalda (arriba)."""
+    g = [fila[:] for fila in g]
+    if direc == "lado":
+        if tipo == "lanzador":
+            g = [fila[::-1] for fila in g]  # el orbe va delante
+        mover(g, CARA[tipo], 2, 0)
+    elif direc == "arriba":
+        g = recolor(g, {ch: ESPALDA[tipo] for ch in CARA[tipo]})
+    return g
+
+
+def adelante(direc, paso):
+    return {"lado": (paso, 0), "abajo": (0, paso), "arriba": (0, -paso)}[direc]
+
+
+def fotogramas_enemigo(tipo, base):
+    salida = []
+    for direc in ("lado", "abajo", "arriba"):
+        pre = f"{tipo}-" + ("" if direc == "lado" else f"{direc}-")
+        v = vista(tipo, base(), direc)
+        def f(nombre, g):
+            salida.append((pre + nombre, g))
+        todo = "".join(set("".join("".join(fl) for fl in v)) - {"."})
+        f("quieto-1", contorno_de(v))
+        f("quieto-2", contorno_de(mover([fl[:] for fl in v], todo, 0, 1)))
+        f("andar-1", contorno_de(mover([fl[:] for fl in v], ARMA[tipo], 0, -1)))
+        f("andar-2", contorno_de(mover([fl[:] for fl in v], todo, 0, 1)))
+        f("aviso-1", contorno_de(recolor(mover([fl[:] for fl in v], ARMA[tipo], 0, -2), BRILLO)))
+        ax, ay = adelante(direc, 3)
+        f("ataque-1", contorno_de(mover([fl[:] for fl in v], ARMA[tipo], ax, ay)))
+        g2 = mover([fl[:] for fl in v], ARMA[tipo], ax * 2, ay * 2)
+        if tipo == "lanzador":
+            g2 = recolor(g2, {"Y": "."})  # el orbe ya salió
+        f("ataque-2", contorno_de(g2))
+        f("golpeado-1", contorno_de(recolor(v, {ch: "W" for ch in CUERPO[tipo] if ch != "o"})))
+        for i, baja in enumerate((1, 3, 6)):
+            g3 = mover([fl[:] for fl in v], todo, 0, baja)
+            g3 = [["Z" if ch != "." else "." for ch in fl] for fl in g3]
+            f(f"muerte-{i + 1}", g3[: LADO - baja] + [["."] * LADO for _ in range(baja)])
+    return salida
+
+
+def contorno_de(g):
+    g = [fl[:] for fl in g]
+    contorno(g)
+    return g
+
+
+def orbe():
+    g = lienzo()
+    for y in range(LADO):
+        for x in range(LADO):
+            if (x - 16) ** 2 + (y - 16) ** 2 <= 2.3 ** 2:
+                pon(g, x, y, "Y")
+    pon(g, 15, 15, "W")
+    contorno(g)
+    return g
+
+
 HOJAS = {
     "espiritu": [
         ("quieto-1", espiritu(dy=0, cola=0)),
@@ -298,13 +468,21 @@ HOJAS = {
         ("impacto-P-4", chispa(15, 8, "r")),
     ],
     "suelo": [(f"baldosa-{i + 1}", baldosa(i)) for i in range(4)],
+    "enemigos": [
+        *fotogramas_enemigo("segador", segador),
+        *fotogramas_enemigo("lanzador", lanzador),
+        *fotogramas_enemigo("escudado", escudado),
+        ("orbe-1", orbe()),
+    ],
 }
 
 EXTRA = {"p": "#6b4f36", "q": "#a8865a", "t": "#4a3524", "n": "#12121a", "N": "#191924", "z": "#0a0a10"}
 
 if __name__ == "__main__":
     for nombre, fotogramas in HOJAS.items():
-        paleta = paleta_usada(fotogramas, {**PALETA, **EXTRA})
+        # Los enemigos tienen su propia paleta: algunas letras (s, r) significan otro color que en el espíritu.
+        base = PALETA_ENEMIGOS if nombre == "enemigos" else {**PALETA, **EXTRA}
+        paleta = paleta_usada(fotogramas, base)
         with open(os.path.join(AQUI, f"{nombre}.json"), "w", encoding="utf-8") as f:
             json.dump(hoja(nombre, fotogramas, paleta), f, ensure_ascii=False, indent=1)
         print(nombre, len(fotogramas), "fotogramas")

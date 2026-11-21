@@ -1,0 +1,611 @@
+{
+  "generated": "lienzo",
+  "sprites": {
+    "enemigos": {
+      "sheet": "enemigos.png",
+      "license": "LICENCIA-sprites.txt",
+      "frames": {
+        "segador-quieto-1": {
+          "x": 0,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "segador-quieto-2": {
+          "x": 32,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "segador-andar-1": {
+          "x": 64,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "segador-andar-2": {
+          "x": 96,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "segador-aviso-1": {
+          "x": 128,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "segador-ataque-1": {
+          "x": 160,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "segador-ataque-2": {
+          "x": 192,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "segador-golpeado-1": {
+          "x": 224,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "segador-muerte-1": {
+          "x": 256,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "segador-muerte-2": {
+          "x": 288,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "segador-muerte-3": {
+          "x": 320,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "segador-abajo-quieto-1": {
+          "x": 352,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "segador-abajo-quieto-2": {
+          "x": 384,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "segador-abajo-andar-1": {
+          "x": 416,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "segador-abajo-andar-2": {
+          "x": 448,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "segador-abajo-aviso-1": {
+          "x": 480,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "segador-abajo-ataque-1": {
+          "x": 512,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "segador-abajo-ataque-2": {
+          "x": 544,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "segador-abajo-golpeado-1": {
+          "x": 576,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "segador-abajo-muerte-1": {
+          "x": 608,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "segador-abajo-muerte-2": {
+          "x": 640,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "segador-abajo-muerte-3": {
+          "x": 672,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "segador-arriba-quieto-1": {
+          "x": 704,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "segador-arriba-quieto-2": {
+          "x": 736,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "segador-arriba-andar-1": {
+          "x": 768,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "segador-arriba-andar-2": {
+          "x": 800,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "segador-arriba-aviso-1": {
+          "x": 832,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "segador-arriba-ataque-1": {
+          "x": 864,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "segador-arriba-ataque-2": {
+          "x": 896,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "segador-arriba-golpeado-1": {
+          "x": 928,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "segador-arriba-muerte-1": {
+          "x": 960,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "segador-arriba-muerte-2": {
+          "x": 992,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "segador-arriba-muerte-3": {
+          "x": 1024,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "lanzador-quieto-1": {
+          "x": 1056,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "lanzador-quieto-2": {
+          "x": 1088,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "lanzador-andar-1": {
+          "x": 1120,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "lanzador-andar-2": {
+          "x": 1152,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "lanzador-aviso-1": {
+          "x": 1184,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "lanzador-ataque-1": {
+          "x": 1216,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "lanzador-ataque-2": {
+          "x": 1248,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "lanzador-golpeado-1": {
+          "x": 1280,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "lanzador-muerte-1": {
+          "x": 1312,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "lanzador-muerte-2": {
+          "x": 1344,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "lanzador-muerte-3": {
+          "x": 1376,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "lanzador-abajo-quieto-1": {
+          "x": 1408,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "lanzador-abajo-quieto-2": {
+          "x": 1440,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "lanzador-abajo-andar-1": {
+          "x": 1472,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "lanzador-abajo-andar-2": {
+          "x": 1504,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "lanzador-abajo-aviso-1": {
+          "x": 1536,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "lanzador-abajo-ataque-1": {
+          "x": 1568,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "lanzador-abajo-ataque-2": {
+          "x": 1600,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "lanzador-abajo-golpeado-1": {
+          "x": 1632,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "lanzador-abajo-muerte-1": {
+          "x": 1664,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "lanzador-abajo-muerte-2": {
+          "x": 1696,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "lanzador-abajo-muerte-3": {
+          "x": 1728,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "lanzador-arriba-quieto-1": {
+          "x": 1760,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "lanzador-arriba-quieto-2": {
+          "x": 1792,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "lanzador-arriba-andar-1": {
+          "x": 1824,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "lanzador-arriba-andar-2": {
+          "x": 1856,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "lanzador-arriba-aviso-1": {
+          "x": 1888,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "lanzador-arriba-ataque-1": {
+          "x": 1920,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "lanzador-arriba-ataque-2": {
+          "x": 1952,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "lanzador-arriba-golpeado-1": {
+          "x": 1984,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "lanzador-arriba-muerte-1": {
+          "x": 2016,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "lanzador-arriba-muerte-2": {
+          "x": 2048,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "lanzador-arriba-muerte-3": {
+          "x": 2080,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "escudado-quieto-1": {
+          "x": 2112,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "escudado-quieto-2": {
+          "x": 2144,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "escudado-andar-1": {
+          "x": 2176,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "escudado-andar-2": {
+          "x": 2208,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "escudado-aviso-1": {
+          "x": 2240,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "escudado-ataque-1": {
+          "x": 2272,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "escudado-ataque-2": {
+          "x": 2304,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "escudado-golpeado-1": {
+          "x": 2336,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "escudado-muerte-1": {
+          "x": 2368,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "escudado-muerte-2": {
+          "x": 2400,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "escudado-muerte-3": {
+          "x": 2432,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "escudado-abajo-quieto-1": {
+          "x": 2464,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "escudado-abajo-quieto-2": {
+          "x": 2496,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "escudado-abajo-andar-1": {
+          "x": 2528,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "escudado-abajo-andar-2": {
+          "x": 2560,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "escudado-abajo-aviso-1": {
+          "x": 2592,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "escudado-abajo-ataque-1": {
+          "x": 2624,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "escudado-abajo-ataque-2": {
+          "x": 2656,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "escudado-abajo-golpeado-1": {
+          "x": 2688,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "escudado-abajo-muerte-1": {
+          "x": 2720,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "escudado-abajo-muerte-2": {
+          "x": 2752,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "escudado-abajo-muerte-3": {
+          "x": 2784,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "escudado-arriba-quieto-1": {
+          "x": 2816,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "escudado-arriba-quieto-2": {
+          "x": 2848,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "escudado-arriba-andar-1": {
+          "x": 2880,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "escudado-arriba-andar-2": {
+          "x": 2912,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "escudado-arriba-aviso-1": {
+          "x": 2944,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "escudado-arriba-ataque-1": {
+          "x": 2976,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "escudado-arriba-ataque-2": {
+          "x": 3008,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "escudado-arriba-golpeado-1": {
+          "x": 3040,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "escudado-arriba-muerte-1": {
+          "x": 3072,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "escudado-arriba-muerte-2": {
+          "x": 3104,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "escudado-arriba-muerte-3": {
+          "x": 3136,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        },
+        "orbe-1": {
+          "x": 3168,
+          "y": 0,
+          "width": 32,
+          "height": 32
+        }
+      }
+    }
+  }
+}

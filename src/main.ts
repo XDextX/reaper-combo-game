@@ -8,7 +8,7 @@ import { ANCHO, ALTO, encuadre, seguirPantalla } from './pantalla';
 import { avanzar, crearSensacion, desplazamiento, impacto } from './sensacion';
 import { direccion, fotogramaEnBucle, fotogramaPorAvance } from './animacion';
 import { HOJAS, pintar } from './sprites';
-import { ALTO_ENEMIGO, ANCHO_ENEMIGO, MUERTE, cajaEnemigo, crearCombate, pasoCombate, recibirGolpe, type Enemigo } from './enemigos';
+import { ALTO_ENEMIGO, ANCHO_ENEMIGO, MUERTE, RECUPERA, cajaEnemigo, crearCombate, pasoCombate, recibirGolpe, type Enemigo } from './enemigos';
 import { VIDA_MAX, anotar, crearVida, herir, pasoVida } from './vida';
 
 const canvas = document.querySelector<HTMLCanvasElement>('#juego')!;
@@ -165,24 +165,24 @@ function fotogramaEspiritu(e: Espiritu): string {
   return fotogramaEnBucle(f, `${p}quieto`, tick, 30);
 }
 
-// shortcut: los enemigos son rectángulos de colores hasta la tarea 4 (sprites de Lienzo).
-const COLOR_ENEMIGO = { segador: '#b03a8c', lanzador: '#d08a2a', escudado: '#4f6fd0' };
+/** Fotograma del enemigo según su estado y hacia dónde mira (los de lado no llevan dirección en el nombre). */
+function fotogramaEnemigo(e: Enemigo): string {
+  const f = HOJAS.enemigos.fotogramas;
+  const dir = direccion(e.mira);
+  const p = `${e.tipo}-${dir === 'lado' ? '' : `${dir}-`}`;
+  if (e.estado === 'muerto') return fotogramaPorAvance(f, `${p}muerte`, 1 - e.t / MUERTE);
+  if (e.estado === 'golpeado') return `${p}golpeado-1`;
+  if (e.estado === 'aviso') return `${p}aviso-1`;
+  if (e.estado === 'recupera') return e.t > RECUPERA - 12 ? fotogramaPorAvance(f, `${p}ataque`, (RECUPERA - e.t) / 12) : `${p}quieto-1`;
+  return fotogramaEnBucle(f, `${p}andar`, tick, 10);
+}
 function pintarEnemigo(e: Enemigo): void {
-  const x = Math.round(e.x - ANCHO_ENEMIGO / 2);
-  const y = Math.round(e.y - ALTO_ENEMIGO / 2);
-  ctx.globalAlpha = e.estado === 'muerto' ? e.t / MUERTE : 1;
-  ctx.fillStyle = e.estado === 'aviso' ? '#ffe9f6' : e.estado === 'golpeado' ? '#5a2a48' : COLOR_ENEMIGO[e.tipo];
-  ctx.fillRect(x, y, ANCHO_ENEMIGO, ALTO_ENEMIGO);
-  ctx.fillStyle = '#07070b'; // un ojo hacia donde mira
-  ctx.fillRect(Math.round(e.x + e.mira.x * 4) - 1, Math.round(e.y - 4 + e.mira.y * 3) - 1, 3, 3);
-  if (e.tipo === 'escudado') { // el escudo, en el lado al que mira
-    ctx.fillStyle = '#c8d6dc';
-    if (Math.abs(e.mira.x) >= Math.abs(e.mira.y)) ctx.fillRect(e.mira.x > 0 ? x + ANCHO_ENEMIGO : x - 3, y, 3, ALTO_ENEMIGO);
-    else ctx.fillRect(x, e.mira.y > 0 ? y + ALTO_ENEMIGO : y - 3, ANCHO_ENEMIGO, 3);
-  }
+  const espejo = direccion(e.mira) === 'lado' && e.mira.x < 0;
+  pintar(ctx, HOJAS.enemigos, fotogramaEnemigo(e), Math.round(e.x) - 16, Math.round(e.y) - 17, espejo);
+  if (e.estado === 'muerto') return;
   ctx.fillStyle = '#ff7fd4'; // vida que le queda
-  for (let i = 0; i < e.vida; i++) ctx.fillRect(x + i * 3, y - 4, 2, 2);
-  ctx.globalAlpha = 1;
+  const x = Math.round(e.x - ANCHO_ENEMIGO / 2);
+  for (let i = 0; i < e.vida; i++) ctx.fillRect(x + i * 3, Math.round(e.y - ALTO_ENEMIGO / 2) - 6, 2, 2);
 }
 
 function dibujar(): void {
@@ -228,8 +228,7 @@ function dibujar(): void {
   figuras.sort((a, b) => a.y - b.y).forEach((f) => f.pinta());
 
   for (const p of combate.proyectiles) {
-    ctx.fillStyle = '#ffb347';
-    ctx.fillRect(Math.round(p.x) - 2, Math.round(p.y) - 2, 4, 4);
+    pintar(ctx, HOJAS.enemigos, 'orbe-1', Math.round(p.x) - 16, Math.round(p.y) - 16);
   }
   for (const c of chispas) {
     if (c.tipo === 'B') { // chispa gris del bloqueo: una cruz que se abre

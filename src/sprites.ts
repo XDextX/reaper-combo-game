@@ -1,6 +1,8 @@
 // Hojas de sprites de Lienzo: cada PNG con el .kit.json que Lienzo genera a la vez.
 import chispasKit from '../assets/chispas.kit.json';
 import chispasPng from '../assets/chispas.png';
+import enemigosKit from '../assets/enemigos.kit.json';
+import enemigosPng from '../assets/enemigos.png';
 import espirituKit from '../assets/espiritu.kit.json';
 import espirituPng from '../assets/espiritu.png';
 import munecoKit from '../assets/muneco.kit.json';
@@ -23,6 +25,7 @@ export const HOJAS = {
   muneco: cargar(munecoPng, munecoKit, 'muneco'),
   chispas: cargar(chispasPng, chispasKit, 'chispas'),
   suelo: cargar(sueloPng, sueloKit, 'suelo'),
+  enemigos: cargar(enemigosPng, enemigosKit, 'enemigos'),
 };
 
 /** Dibuja un fotograma con su esquina en (x, y) respecto al origen actual; `espejo` lo voltea en horizontal. */
