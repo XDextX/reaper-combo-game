@@ -25,6 +25,13 @@
       .paso-E { border-style: dashed; border-radius: 3px 8px; }
       .paso.hecho { color: #07070b; background: #9fe6f0; border-color: #9fe6f0; }
       li.completo .paso { background: #d0459f; border-color: #d0459f; color: #fff; }
+      #vida { margin: 0; color: #ff7fd4; font-size: 16px; letter-spacing: 2px; }
+      #caido { position: fixed; inset: 0; display: grid; place-content: center; gap: 12px; margin: 0;
+        background: rgba(7, 7, 11, .85); color: #e8f6f8; font: 500 16px system-ui, sans-serif; text-align: center; }
+      #caido[hidden] { display: none; }
+      #caido h2 { margin: 0; font-size: 32px; color: #ff7fd4; }
+      #caido button { justify-self: center; padding: 8px 20px; font: 700 18px system-ui, sans-serif; color: #07070b;
+        background: #9fe6f0; border: 0; border-radius: 6px; cursor: pointer; }
       #contador { margin: 0 0 4px; min-height: 1.5em; color: #e8fbff; font-weight: 700; }
       #ayuda { margin-top: 4px; }
       #ayuda summary { cursor: pointer; color: #9fe6f0; }
@@ -62,6 +69,7 @@
   <body>
     <canvas id="juego" role="img" aria-label="Arena de práctica"></canvas>
     <section id="hud" aria-label="Combos">
+      <p id="vida"><span id="corazones" aria-hidden="true"></span><span id="aviso-vida" class="solo-lectores" aria-live="polite"></span></p>
       <p id="contador"></p>
       <details id="lista" open>
         <summary>Combos</summary>
@@ -75,6 +83,11 @@
         <p><label><input type="checkbox" id="opcion-temblor" /> Temblor de pantalla</label></p>
       </details>
       <p id="aviso-combo" class="solo-lectores" aria-live="polite"></p>
+    </section>
+    <section id="caido" role="dialog" aria-labelledby="caido-titulo" hidden>
+      <h2 id="caido-titulo">Has caído</h2>
+      <p id="caido-resumen"></p>
+      <button type="button" id="reintentar">Reintentar (J)</button>
     </section>
     <div id="tactil">
       <div id="joystick" aria-hidden="true"><div id="pomo"></div></div>

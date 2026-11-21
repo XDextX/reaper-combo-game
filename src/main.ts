@@ -8,6 +8,7 @@ import { ANCHO, ALTO, encuadre, seguirPantalla } from './pantalla';
 import { avanzar, crearSensacion, desplazamiento, impacto } from './sensacion';
 import { direccion, fotogramaEnBucle, fotogramaPorAvance } from './animacion';
 import { HOJAS, pintar } from './sprites';
+import { VIDA_MAX, anotar, crearVida, herir, pasoVida } from './vida';
 
 const canvas = document.querySelector<HTMLCanvasElement>('#juego')!;
 const ctx = canvas.getContext('2d')!;
@@ -23,7 +24,8 @@ seguirPantalla(canvas, (ancho, alto) => {
   dibujar(); // y lo borra: sin esto queda un fotograma en blanco
 });
 
-const espiritu = crearEspiritu(120, ALTO / 2);
+let espiritu = crearEspiritu(120, ALTO / 2);
+let vida = crearVida();
 const munecos = [crearMuneco(300, 90), crearMuneco(360, 142), crearMuneco(300, 195)];
 const detector = crearDetector();
 const contador = crearContador();
@@ -54,6 +56,37 @@ for (const control of document.querySelectorAll<HTMLElement>('#hud summary, #hud
     setTimeout(() => destino?.blur());
   });
 }
+// Vida en el HUD (corazones a la vista, frase para lectores) y pantalla «Has caído».
+const corazones = document.querySelector<HTMLElement>('#corazones')!;
+const avisoVida = document.querySelector<HTMLElement>('#aviso-vida')!;
+const caido = document.querySelector<HTMLElement>('#caido')!;
+const resumen = document.querySelector<HTMLElement>('#caido-resumen')!;
+const botonReintentar = document.querySelector<HTMLButtonElement>('#reintentar')!;
+function pintarVida(anunciar: boolean): void {
+  corazones.textContent = '♥'.repeat(vida.vida) + '♡'.repeat(VIDA_MAX - vida.vida);
+  if (anunciar) avisoVida.textContent = `Vida: ${vida.vida} de ${VIDA_MAX}`;
+}
+pintarVida(false);
+/** Un ataque enemigo alcanza al espíritu (lo llamarán los enemigos, tarea 2 del plan del combate). */
+function danarEspiritu(): void {
+  if (!herir(vida, espiritu.estado === 'esquivando')) return;
+  contador.romper();
+  pintarVida(true);
+  if (vida.vida > 0) return;
+  resumen.textContent = `${vida.golpes} ${vida.golpes === 1 ? 'golpe' : 'golpes'} · mejor combo: ${vida.mejorCombo}`;
+  caido.hidden = false;
+  botonReintentar.focus();
+}
+function reintentar(): void {
+  espiritu = crearEspiritu(120, ALTO / 2);
+  vida = crearVida();
+  contador.romper();
+  chispas = [];
+  caido.hidden = true;
+  pintarVida(true);
+  botonReintentar.blur(); // el foco no se queda en un botón oculto
+}
+botonReintentar.addEventListener('click', reintentar);
 let tick = 0;
 // Chispas de impacto: un sprite que se reproduce una vez en cada punto alcanzado.
 const VIDA_CHISPA = 12;
@@ -63,7 +96,12 @@ function actualizar(): void {
   const ahora = performance.now();
   const { mover, acciones } = entrada.leer();
   if (vertical.matches) return; // en vertical el juego espera a que se gire el teléfono
+  if (vida.vida === 0) {
+    if (acciones.some((p) => p.accion === 'L')) reintentar(); // J reintenta
+    return;
+  }
   tick++;
+  pasoVida(vida);
   for (const p of acciones) {
     pedir(espiritu, p.accion, detector.registrar(p));
   }
@@ -74,7 +112,10 @@ function actualizar(): void {
       const tocados = munecos.filter((m) => solapan(golpe.caja, cajaMuneco(m)));
       const destella = tocados.length > 0 && destellos.pedir();
       const alcanzados = tocados.filter((m) => recibir(m, golpe, espiritu, destella));
-      alcanzados.forEach(() => contador.golpe(ahora));
+      alcanzados.forEach(() => {
+        contador.golpe(ahora);
+        anotar(vida, contador.golpes);
+      });
       if (alcanzados.length) impacto(sensacion, golpe, alcanzados, maxTemblor());
       const tipo = golpe.combo || golpe.accion === 'P' ? 'P' : 'L';
       for (const m of alcanzados) chispas.push({ x: m.x, y: m.y, tipo, vida: VIDA_CHISPA });
@@ -129,6 +170,7 @@ function dibujar(): void {
       pintar(ctx, HOJAS.muneco, f, Math.round(m.x) - 16, Math.round(m.y) - 14, m.vx < 0);
     } })),
     { y: espiritu.y, pinta: () => {
+      if (vida.invulnerable > 0 && Math.floor(vida.invulnerable / 5) % 2) return; // parpadea mientras no le hacen daño
       // El cuerpo está en (13, 18) dentro del fotograma de lado y en (16, 18) en los de frente y espalda.
       const lado = direccion(espiritu.mira) === 'lado';
       const espejo = lado && espiritu.mira.x < 0;
