@@ -8,6 +8,7 @@ import { ANCHO, ALTO, encuadre, seguirPantalla } from './pantalla';
 import { avanzar, crearSensacion, desplazamiento, impacto } from './sensacion';
 import { direccion, fotogramaEnBucle, fotogramaPorAvance } from './animacion';
 import { HOJAS, pintar } from './sprites';
+import { ALTO_ENEMIGO, ANCHO_ENEMIGO, MUERTE, cajaEnemigo, crearCombate, pasoCombate, recibirGolpe, type Enemigo } from './enemigos';
 import { VIDA_MAX, anotar, crearVida, herir, pasoVida } from './vida';
 
 const canvas = document.querySelector<HTMLCanvasElement>('#juego')!;
@@ -26,6 +27,9 @@ seguirPantalla(canvas, (ancho, alto) => {
 
 let espiritu = crearEspiritu(120, ALTO / 2);
 let vida = crearVida();
+// La tarea 3 del plan del combate añade el botón para pasar a práctica (los muñecos).
+const modo: 'combate' | 'practica' = 'combate';
+let combate = crearCombate();
 const munecos = [crearMuneco(300, 90), crearMuneco(360, 142), crearMuneco(300, 195)];
 const detector = crearDetector();
 const contador = crearContador();
@@ -80,6 +84,7 @@ function danarEspiritu(): void {
 function reintentar(): void {
   espiritu = crearEspiritu(120, ALTO / 2);
   vida = crearVida();
+  combate = crearCombate();
   contador.romper();
   chispas = [];
   caido.hidden = true;
@@ -90,7 +95,7 @@ botonReintentar.addEventListener('click', reintentar);
 let tick = 0;
 // Chispas de impacto: un sprite que se reproduce una vez en cada punto alcanzado.
 const VIDA_CHISPA = 12;
-let chispas: { x: number; y: number; tipo: 'L' | 'P'; vida: number }[] = [];
+let chispas: { x: number; y: number; tipo: 'L' | 'P' | 'B'; vida: number }[] = []; // B: bloqueo del escudado
 
 function actualizar(): void {
   const ahora = performance.now();
@@ -109,9 +114,20 @@ function actualizar(): void {
     const golpe = moverEspiritu(espiritu, mover);
     if (golpe) {
       if (golpe.combo) interfaz.combo(golpe.combo, ahora);
-      const tocados = munecos.filter((m) => solapan(golpe.caja, cajaMuneco(m)));
-      const destella = tocados.length > 0 && destellos.pedir();
-      const alcanzados = tocados.filter((m) => recibir(m, golpe, espiritu, destella));
+      let alcanzados: { x: number; y: number }[];
+      if (modo === 'combate') {
+        const tocados = combate.enemigos.filter((e) => e.estado !== 'muerto' && solapan(golpe.caja, cajaEnemigo(e)));
+        alcanzados = [];
+        for (const e of tocados) {
+          const r = recibirGolpe(e, golpe, espiritu);
+          if (r === 'bloqueo') chispas.push({ x: e.x, y: e.y, tipo: 'B', vida: VIDA_CHISPA });
+          else alcanzados.push(e);
+        }
+      } else {
+        const tocados = munecos.filter((m) => solapan(golpe.caja, cajaMuneco(m)));
+        const destella = tocados.length > 0 && destellos.pedir();
+        alcanzados = tocados.filter((m) => recibir(m, golpe, espiritu, destella));
+      }
       alcanzados.forEach(() => {
         contador.golpe(ahora);
         anotar(vida, contador.golpes);
@@ -120,7 +136,10 @@ function actualizar(): void {
       const tipo = golpe.combo || golpe.accion === 'P' ? 'P' : 'L';
       for (const m of alcanzados) chispas.push({ x: m.x, y: m.y, tipo, vida: VIDA_CHISPA });
     }
-    for (const m of munecos) actualizarMuneco(m);
+    if (modo === 'combate') {
+      const cuerpo = { x: espiritu.x - 6, y: espiritu.y - 14, w: 12, h: 16 };
+      pasoCombate(combate, espiritu, cuerpo, golpe?.caja ?? null, danarEspiritu);
+    } else for (const m of munecos) actualizarMuneco(m);
   }
   destellos.paso();
   contador.actualizar(ahora);
@@ -137,6 +156,26 @@ function fotogramaEspiritu(e: Espiritu): string {
   if (e.estado === 'esquivando') return fotogramaPorAvance(f, `${p}esquiva`, e.paso / DURACION.E);
   if (e.estado === 'andar') return fotogramaEnBucle(f, `${p}andar`, tick, 8);
   return fotogramaEnBucle(f, `${p}quieto`, tick, 30);
+}
+
+// shortcut: los enemigos son rectángulos de colores hasta la tarea 4 (sprites de Lienzo).
+const COLOR_ENEMIGO = { segador: '#b03a8c', lanzador: '#d08a2a', escudado: '#4f6fd0' };
+function pintarEnemigo(e: Enemigo): void {
+  const x = Math.round(e.x - ANCHO_ENEMIGO / 2);
+  const y = Math.round(e.y - ALTO_ENEMIGO / 2);
+  ctx.globalAlpha = e.estado === 'muerto' ? e.t / MUERTE : 1;
+  ctx.fillStyle = e.estado === 'aviso' ? '#ffe9f6' : e.estado === 'golpeado' ? '#5a2a48' : COLOR_ENEMIGO[e.tipo];
+  ctx.fillRect(x, y, ANCHO_ENEMIGO, ALTO_ENEMIGO);
+  ctx.fillStyle = '#07070b'; // un ojo hacia donde mira
+  ctx.fillRect(Math.round(e.x + e.mira.x * 4) - 1, Math.round(e.y - 4 + e.mira.y * 3) - 1, 3, 3);
+  if (e.tipo === 'escudado') { // el escudo, en el lado al que mira
+    ctx.fillStyle = '#c8d6dc';
+    if (Math.abs(e.mira.x) >= Math.abs(e.mira.y)) ctx.fillRect(e.mira.x > 0 ? x + ANCHO_ENEMIGO : x - 3, y, 3, ALTO_ENEMIGO);
+    else ctx.fillRect(x, e.mira.y > 0 ? y + ALTO_ENEMIGO : y - 3, ANCHO_ENEMIGO, 3);
+  }
+  ctx.fillStyle = '#ff7fd4'; // vida que le queda
+  for (let i = 0; i < e.vida; i++) ctx.fillRect(x + i * 3, y - 4, 2, 2);
+  ctx.globalAlpha = 1;
 }
 
 function dibujar(): void {
@@ -165,7 +204,8 @@ function dibujar(): void {
 
   // Orden por profundidad: lo que está más abajo se pinta encima.
   const figuras = [
-    ...munecos.map((m) => ({ y: m.y, pinta: () => {
+    ...(modo === 'combate' ? combate.enemigos : []).map((e) => ({ y: e.y, pinta: () => pintarEnemigo(e) })),
+    ...(modo === 'practica' ? munecos : []).map((m) => ({ y: m.y, pinta: () => {
       const f = m.golpeado > DESTELLO - 4 ? 'golpeado-1' : m.golpeado > 0 ? 'golpeado-2' : 'quieto-1';
       pintar(ctx, HOJAS.muneco, f, Math.round(m.x) - 16, Math.round(m.y) - 14, m.vx < 0);
     } })),
@@ -180,7 +220,18 @@ function dibujar(): void {
   ];
   figuras.sort((a, b) => a.y - b.y).forEach((f) => f.pinta());
 
+  for (const p of combate.proyectiles) {
+    ctx.fillStyle = '#ffb347';
+    ctx.fillRect(Math.round(p.x) - 2, Math.round(p.y) - 2, 4, 4);
+  }
   for (const c of chispas) {
+    if (c.tipo === 'B') { // chispa gris del bloqueo: una cruz que se abre
+      const r = Math.round((1 - c.vida / VIDA_CHISPA) * 8);
+      ctx.fillStyle = '#9aa4ab';
+      ctx.fillRect(Math.round(c.x) - r, Math.round(c.y), 2 * r + 1, 1);
+      ctx.fillRect(Math.round(c.x), Math.round(c.y) - r, 1, 2 * r + 1);
+      continue;
+    }
     const nombre = fotogramaPorAvance(HOJAS.chispas.fotogramas, `impacto-${c.tipo}`, 1 - c.vida / VIDA_CHISPA);
     pintar(ctx, HOJAS.chispas, nombre, Math.round(c.x) - 16, Math.round(c.y) - 16);
   }
