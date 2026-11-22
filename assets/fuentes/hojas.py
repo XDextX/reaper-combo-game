@@ -430,6 +430,66 @@ def orbe():
     return g
 
 
+
+# --- RPG: botín, iconos de estado y asistentes (spec, «Componentes RPG») ---
+PALETA_RPG = {
+    ".": "transparent", "o": "#24343c", "W": "#ffffff",
+    "c": "#9fe6f0", "C": "#d8fbff",  # alma de cura
+    "i": "#ff3fb8", "I": "#ffb0e4", "j": "#8a1f66",  # alma inestable
+    "g": "#e0c050", "G": "#fff1a8", "d": "#8a6a1a",  # oro del equipo
+    "h": "#7d8f9a", "b": "#c8d6dc",  # mango y hoja
+    "f": "#ff7a1a", "F": "#ffe14f",  # fuego / rayo
+    "v": "#6fd04f", "V": "#2f7a2a",  # veneno
+    "r": "#c0182a",  # sangre
+    "l": "#7fd8ff",  # hielo
+    "y": "#8a8aa0", "k": "#07070b",  # ceguera
+    "m": "#b04fff",  # marca
+    "n": "#2a2a3a", "N": "#4a4a66", "p": "#e8e0c0", "P": "#b8a888",  # cuervo, polilla
+}
+
+
+def dibujo(arte, contornear=True):
+    """Pone un dibujo ascii centrado en el fotograma de 32×32."""
+    g = lienzo()
+    alto, ancho = len(arte), max(len(f) for f in arte)
+    x0, y0 = 16 - ancho // 2, 16 - alto // 2
+    for y, fila in enumerate(arte):
+        for x, ch in enumerate(fila):
+            if ch != ".":
+                pon(g, x0 + x, y0 + y, ch)
+    if contornear:
+        contorno(g)
+    return g
+
+
+ALMA = ["..C..", ".CcC.", "CcWcC", "CcccC", ".CcC.", "..C.."]
+RPG = [
+    ("cura-1", dibujo(ALMA)),
+    ("inestable-1", dibujo([f.replace("C", "I").replace("c", "i") for f in ALMA])),
+    ("inestable-2", dibujo(["..I..", ".IiI.", "IijiI", "IjWjI", ".IiI.", "..I.."])),
+    # equipo en el suelo: una silueta dorada de su hueco
+    ("equipo-guadana", dibujo(["..GGG..", ".g...G.", "g....d.", "....d..", "...d...", "..d....", ".d....."])),
+    ("equipo-amuleto", dibujo([".d.d.", "d...d", ".d.d.", "..g..", ".gGg.", ".ggg.", "..g.."])),
+    ("equipo-tunica", dibujo(["..ggg..", ".gGGGg.", ".gkkkg.", "ggkkkgg", "g.gGg.g", "g.gGg.g", "..gGg..", ".ggggg."])),  # capucha y mangas
+    ("equipo-asistente", dibujo(["..G..", ".GgG.", "GgWgG", ".GgG.", "..G..", ".g.g."])),
+    # iconos de estado (5×5) encima del enemigo; sin contorno para que se lean pequeños
+    ("estado-quemadura", dibujo(["..f..", ".fFf.", ".fFf.", "fFFFf", ".fff."], False)),
+    ("estado-veneno", dibujo([".vvv.", "vVvVv", "vvvvv", ".vVv.", "..v.."], False)),
+    ("estado-sangrado", dibujo(["..r..", ".rr..", ".rrr.", "rrrrr", ".rrr."], False)),
+    ("estado-lentitud", dibujo(["l.l.l", ".lll.", "lllll", ".lll.", "l.l.l"], False)),
+    ("estado-aturdimiento", dibujo(["...F.", "..F..", ".FFF.", "..F..", ".F..."], False)),
+    ("estado-ceguera", dibujo([".yyy.", "yykyy", "ykkky", "yykyy", ".yyy."], False)),
+    ("estado-marca", dibujo(["m...m", ".m.m.", "..m..", ".m.m.", "m...m"], False)),
+    # asistentes: dos fotogramas cada uno
+    ("farol-1", dibujo([".h.", "hhh", "fFf", "FWF", "fFf", "hhh"])),
+    ("farol-2", dibujo([".h.", "hhh", "fff", "fFf", "fff", "hhh"])),
+    ("cuervo-1", dibujo(["..nn...", ".nNnn..", "nnnnnnF", "..nnn..", "...n..."])),
+    ("cuervo-2", dibujo(["n.....n", "nn.nn.n", ".nNnnnF", "..nnn..", "...n..."])),
+    ("polilla-1", dibujo(["pP.Pp", "pPkPp", ".pkp.", "pPkPp", "P...P"])),
+    ("polilla-2", dibujo([".P.P.", "pPkPp", "..k..", "pPkPp", ".P.P."])),
+]
+
+
 HOJAS = {
     "espiritu": [
         ("quieto-1", espiritu(dy=0, cola=0)),
@@ -474,6 +534,7 @@ HOJAS = {
         *fotogramas_enemigo("escudado", escudado),
         ("orbe-1", orbe()),
     ],
+    "rpg": RPG,
 }
 
 EXTRA = {"p": "#6b4f36", "q": "#a8865a", "t": "#4a3524", "n": "#12121a", "N": "#191924", "z": "#0a0a10"}
@@ -481,7 +542,7 @@ EXTRA = {"p": "#6b4f36", "q": "#a8865a", "t": "#4a3524", "n": "#12121a", "N": "#
 if __name__ == "__main__":
     for nombre, fotogramas in HOJAS.items():
         # Los enemigos tienen su propia paleta: algunas letras (s, r) significan otro color que en el espíritu.
-        base = PALETA_ENEMIGOS if nombre == "enemigos" else {**PALETA, **EXTRA}
+        base = PALETA_ENEMIGOS if nombre == "enemigos" else PALETA_RPG if nombre == "rpg" else {**PALETA, **EXTRA}
         paleta = paleta_usada(fotogramas, base)
         with open(os.path.join(AQUI, f"{nombre}.json"), "w", encoding="utf-8") as f:
             json.dump(hoja(nombre, fotogramas, paleta), f, ensure_ascii=False, indent=1)

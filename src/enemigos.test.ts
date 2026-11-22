@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { COMBOS } from './combos';
 import {
   LEJOS, aparecer,
-  AVISO, DISTANCIA_LANZADOR, EN_ARENA, ESPERA_REAPARECER, MUERTE, RECARGA,
+  AVISO, DISTANCIA_LANZADOR, VIDA, EN_ARENA, ESPERA_REAPARECER, MUERTE, RECARGA,
   actualizarEnemigo, crearCombate, crearEnemigo, pasoCombate, recibirGolpe, type Enemigo,
 } from './enemigos';
 import type { Golpe } from './espiritu';
@@ -20,15 +20,17 @@ describe('daño', () => {
     const e = crearEnemigo('escudado', 100, 100);
     e.mira = { x: 1, y: 0 }; // de espaldas al espíritu, que está a la izquierda
     recibirGolpe(e, golpe('L'), { x: 90, y: 100 });
-    expect(e.vida).toBe(3);
+    expect(e.vida).toBe(VIDA.escudado - 1);
     const s = crearEnemigo('segador', 100, 100);
     expect(recibirGolpe(s, golpe('P'), { x: 90, y: 100 })).toBe('dano');
-    expect(s.vida).toBe(1);
-    expect(recibirGolpe(crearEnemigo('segador', 100, 100), golpe('L', true), { x: 90, y: 100 })).toBe('muerte');
+    expect(s.vida).toBe(VIDA.segador - 2);
+    recibirGolpe(s, golpe('L', true), { x: 90, y: 100 });
+    expect(s.vida).toBe(VIDA.segador - 5);
   });
   it('un muerto no recibe más golpes', () => {
     const e = crearEnemigo('lanzador', 100, 100);
-    recibirGolpe(e, golpe('P'), { x: 90, y: 100 });
+    e.vida = 2;
+    expect(recibirGolpe(e, golpe('P'), { x: 90, y: 100 })).toBe('muerte');
     expect(recibirGolpe(e, golpe('P'), { x: 90, y: 100 })).toBe('nada');
   });
 });
@@ -42,7 +44,7 @@ describe('escudado', () => {
   it('para el ligero que le llega de frente', () => {
     const e = deFrente();
     expect(recibirGolpe(e, golpe('L'), { x: 90, y: 100 })).toBe('bloqueo');
-    expect(e.vida).toBe(4);
+    expect(e.vida).toBe(VIDA.escudado);
   });
   it('no para el pesado, el remate de un combo ni el ligero por la espalda', () => {
     expect(recibirGolpe(deFrente(), golpe('P'), { x: 90, y: 100 })).toBe('dano');
@@ -114,5 +116,51 @@ describe('aparición', () => {
     const azar = () => [0, 0.05, 0, 0.3, 0.5][n++ % 5]; // primero un punto al lado del espíritu
     const e = aparecer(azar, { x: 20, y: 30 });
     expect(Math.hypot(e.x - 20, e.y - 30)).toBeGreaterThanOrEqual(LEJOS);
+  });
+});
+
+describe('estados en los enemigos', () => {
+  const g = (accion: 'L' | 'P'): Golpe => ({ accion, caja, empuje: 0, combo: null });
+  it('la marca dobla el siguiente golpe y el aturdido no avanza su aviso', () => {
+    const e = crearEnemigo('escudado', 100, 100);
+    e.mira = { x: 1, y: 0 };
+    recibirGolpe(e, g('L'), { x: 90, y: 100 }, 0, 'marca');
+    expect(e.vida).toBe(VIDA.escudado - 1);
+    recibirGolpe(e, g('L'), { x: 90, y: 100 });
+    expect(e.vida).toBe(VIDA.escudado - 3);
+    const s = crearEnemigo('segador', 115, 100);
+    pasos(s, 1);
+    expect(s.estado).toBe('aviso');
+    recibirGolpe(s, g('L'), { x: 200, y: 100 }, 0, 'aturdimiento');
+    s.estado = 'aviso';
+    s.t = AVISO;
+    expect(pasos(s, 59)).toEqual([]);
+  });
+  it('la quemadura mata y avisa de la muerte', () => {
+    const e = crearEnemigo('lanzador', 100, 100);
+    recibirGolpe(e, g('L'), { x: 90, y: 100 }, 0, 'quemadura');
+    const murio = Array.from({ length: 120 }, () => actualizarEnemigo(e, { x: 300, y: 100 })).some((a) => a.murio);
+    expect(murio).toBe(true);
+    expect(e.estado).toBe('muerto');
+  });
+  it('lento avanza a la mitad', () => {
+    const a = crearEnemigo('segador', 300, 100);
+    const b = crearEnemigo('segador', 300, 100);
+    recibirGolpe(b, g('L'), { x: 400, y: 100 }, 0, 'lentitud');
+    b.vida = VIDA.segador; b.estado = 'andar'; b.t = 0; b.vx = 0; a.vx = 0;
+    pasos(a, 60); pasos(b, 60);
+    expect(300 - b.x).toBeCloseTo((300 - a.x) / 2, 0);
+  });
+});
+
+describe('quemadura que se propaga', () => {
+  it('salta a un enemigo vivo a menos de 30 px, no a uno lejano', () => {
+    const c = crearCombate(() => 0.5);
+    const [a, b, lejos] = c.enemigos;
+    Object.assign(a, { x: 100, y: 100 }); Object.assign(b, { x: 120, y: 100 }); Object.assign(lejos, { x: 300, y: 100 });
+    recibirGolpe(a, { accion: 'L', caja, empuje: 0, combo: null }, { x: 90, y: 100 }, 0, 'quemadura');
+    pasoCombate(c, { x: 400, y: 250 }, { x: 0, y: 0, w: 0, h: 0 }, null, () => {});
+    expect(b.estados.quemadura).toBeGreaterThan(0);
+    expect(lejos.estados.quemadura).toBe(0);
   });
 });

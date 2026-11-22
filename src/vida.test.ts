@@ -33,6 +33,6 @@ describe('vida', () => {
     expect(v).toMatchObject({ golpes: 3, mejorCombo: 7 });
   });
   it('reintentar empieza con la vida llena', () => {
-    expect(crearVida()).toEqual({ vida: VIDA_MAX, invulnerable: 0, golpes: 0, mejorCombo: 0 });
+    expect(crearVida()).toEqual({ vida: VIDA_MAX, vidaMax: VIDA_MAX, invulnerable: 0, golpes: 0, mejorCombo: 0 });
   });
 });

@@ -34,7 +34,19 @@
       #conexion { margin: 0 0 4px; font-size: 12px; color: #9fe6f0; }
       #conexion.sin { color: #ffb347; }
       #vida { margin: 0; color: #ff7fd4; font-size: 16px; letter-spacing: 2px; }
-      #caido { position: fixed; inset: 0; display: grid; place-content: center; gap: 12px; margin: 0;
+      #mejora { position: fixed; inset: 0; z-index: 2; display: grid; place-content: center; gap: 12px; margin: 0;
+        background: rgba(7, 7, 11, .85); color: #e8f6f8; font: 500 16px system-ui, sans-serif; text-align: center; }
+      #mejora[hidden] { display: none; }
+      #mejora h2 { margin: 0; font-size: 28px; color: #ff7fd4; }
+      #opciones { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+      #opciones button { width: 180px; padding: 12px; text-align: left; font: 500 14px/1.4 system-ui, sans-serif; color: #e8f6f8;
+        background: #12121a; border: 2px solid #4a6470; border-radius: 8px; cursor: pointer; }
+      #opciones button:focus-visible, #opciones button:hover { border-color: #ff7fd4; }
+      #opciones strong { display: block; font-size: 16px; color: #9fe6f0; }
+      #equipo-hud { margin: 0 0 4px; padding: 0; list-style: none; font-size: 11px; line-height: 1.35; color: #cfe9ee; }
+      #equipo-hud strong { color: #e0c050; }
+      #mejoras-hud { margin: 0 0 4px; font-size: 12px; color: #cfe9ee; }
+      #caido { position: fixed; inset: 0; z-index: 2; display: grid; place-content: center; gap: 12px; margin: 0;
         background: rgba(7, 7, 11, .85); color: #e8f6f8; font: 500 16px system-ui, sans-serif; text-align: center; }
       #caido[hidden] { display: none; }
       #caido h2 { margin: 0; font-size: 32px; color: #ff7fd4; }
@@ -80,6 +92,9 @@
       <button type="button" id="modo">Pasar a práctica</button>
       <p id="conexion" role="status"></p>
       <p id="vida"><span id="corazones" aria-hidden="true"></span><span id="aviso-vida" class="solo-lectores" aria-live="polite"></span></p>
+      <ul id="equipo-hud" aria-label="Equipo"></ul>
+      <p id="aviso-equipo" class="solo-lectores" aria-live="polite"></p>
+      <p id="mejoras-hud"></p>
       <p id="contador"></p>
       <details id="lista" open>
         <summary>Combos</summary>
@@ -98,6 +113,11 @@
       <h2 id="caido-titulo">Has caído</h2>
       <p id="caido-resumen"></p>
       <button type="button" id="reintentar">Reintentar (J)</button>
+    </section>
+    <section id="mejora" role="dialog" aria-modal="true" aria-labelledby="mejora-titulo" aria-describedby="mejora-ayuda" hidden>
+      <h2 id="mejora-titulo">Alma inestable</h2>
+      <p id="mejora-ayuda">Elige una mejora: flechas o stick para moverte, J o Intro para elegir.</p>
+      <div id="opciones"></div>
     </section>
     <div id="tactil">
       <div id="joystick" aria-hidden="true"><div id="pomo"></div></div>

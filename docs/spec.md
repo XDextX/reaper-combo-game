@@ -50,9 +50,9 @@ Aprobado por el dueño el 2026-11-20.
 
 **Enemigos.** Siempre hay 3 en la arena. Cuando uno muere, aparece otro por un borde al cabo de 1 s. El tipo se elige al azar entre tres:
 
-- **Segador menor** (cuerpo a cuerpo): 3 de vida. Se acerca y, antes de golpear, se queda quieto y brilla durante 0,5 s, lo que da tiempo a esquivar.
-- **Lanzador** (a distancia): 2 de vida. Se mantiene a unos 120 px y dispara un proyectil lento cada 2 s, con un aviso previo. El proyectil se esquiva o se corta con un golpe.
-- **Escudado**: 4 de vida. Bloquea los golpes ligeros que le llegan de frente, con una chispa gris y sin daño. P, los combos y los golpes por la espalda sí le hacen daño.
+- **Segador menor** (cuerpo a cuerpo): 6 de vida. Se acerca y, antes de golpear, se queda quieto y brilla durante 0,5 s, lo que da tiempo a esquivar.
+- **Lanzador** (a distancia): 4 de vida. Se mantiene a unos 120 px y dispara un proyectil lento cada 2 s, con un aviso previo. El proyectil se esquiva o se corta con un golpe.
+- **Escudado**: 8 de vida. Bloquea los golpes ligeros que le llegan de frente, con una chispa gris y sin daño. P, los combos y los golpes por la espalda sí le hacen daño.
 
 **Daño de los golpes.** L quita 1, P quita 2 y el remate de un combo quita 3. Cada enemigo tiene sus propios fotogramas de quieto, andar, aviso, ataque, golpeado y muerte. Los dibujos se hacen con Lienzo en 4 direcciones, igual que el espíritu, y el dueño los aprueba antes de usarlos.
 
@@ -99,6 +99,39 @@ El juego lee las regiones directamente del `.kit.json` generado. Un mismo mapa s
 - La lista de combos y la ayuda de controles van en HTML encima del canvas. El paso actual se marca con `aria-current`, sin anunciarse en cada golpe.
 - L, P y E no se distinguen solo por color: cada uno lleva su letra o su forma.
 - El canvas lleva `role="img"` y una etiqueta. El límite de la arena tiene un contraste de al menos 3:1 con el fondo.
+
+## Componentes RPG
+
+Aprobado por el dueño el 2026-11-22. Solo en el modo Combate. Todo se pierde al caer: cada partida empieza sin mejoras ni equipo.
+
+**Botín.** Al morir, un enemigo puede soltar un objeto de equipo (10 %), un alma que cura 1 corazón (15 %) o un **alma inestable** (8 %). Lo que cae parpadea suave y desaparece a los 10 s. Se recoge pasando por encima.
+
+**Alma inestable.** Al recogerla, el juego se pausa y se elige 1 de 3 mejoras al azar, con teclado, mando, toque o lector de pantalla. Las mejoras se acumulan:
+
+- **Más vida:** +1 corazón máximo y cura uno.
+- **Más daño:** +1 al golpe pesado (P) y a los remates de combo.
+- **Robo de vida:** cada 10 golpes de combo seguidos se recupera 1 corazón.
+- **Infusión:** es de un estado concreto (fuego, veneno, sangre, hielo, rayo, cuervo o sombra) y solo se lleva una. Cada golpe tiene un 35 % de aplicar su estado. Elegir la misma infusión otra vez sube ese 35 % a 70 % y luego a 100 %; elegir otra distinta sustituye a la anterior y vuelve al 35 %.
+
+**Estados alterados** (sobre los enemigos; cada uno con su icono encima del enemigo):
+
+- **Quemadura** (fuego): 1 de daño cada 0,5 s durante 2 s, y salta a los enemigos vivos que estén a menos de 30 px. No se acumula.
+- **Veneno:** 1 de daño cada 2 s durante 6 s; se acumula hasta 3 veces.
+- **Sangrado:** 1 de daño cada vez que el enemigo recorre 40 px; dura 5 s.
+- **Lentitud** (hielo): se mueve y avisa a la mitad de velocidad durante 3 s.
+- **Aturdimiento** (rayo): paralizado 1 s, y no se repite hasta pasados 3 s.
+- **Ceguera:** durante 3 s pierde de vista al espíritu y anda sin rumbo; si ataca, apunta mal.
+- **Marca** (sombra): el siguiente golpe que recibe hace el doble de daño.
+
+**Equipo.** 4 huecos, un objeto por hueco; si se recoge otro de un hueco ocupado, el juego se pausa y se elige entre equipar el nuevo o seguir con el que se lleva; el descartado se pierde. Con el hueco libre se equipa sin preguntar. El HUD dice qué se lleva y qué hace.
+
+- **Guadaña:** da un elemento a los golpes, una por estado (por ejemplo, la guadaña ígnea aplica quemadura y la guadaña del cuervo, ceguera): 1 de cada 4 golpes aplica su estado. Si la infusión ya aplicó uno en ese golpe, manda la infusión.
+- El objeto se decide al caer: uno al azar de los 16 (7 guadañas, 3 amuletos, 3 túnicas y 3 asistentes), y en el suelo se ve la inicial de su hueco (G, A, T o E de espíritu asistente). Los lectores de pantalla oyen cuál es, qué hace y a cuál sustituye.
+- **Amuleto:** un efecto pasivo, por ejemplo +1 corazón, robo de vida o más tiempo sin recibir daño tras un golpe.
+- **Túnica:** defensa, por ejemplo esquiva más larga, un golpe que no quita vida cada 20 s, o enemigos más lentos alrededor.
+- **Asistente:** un pequeño espíritu que sigue al jugador y aplica buffs o debuffs según su tipo: el **Farol** da +1 de daño mientras hay enemigos cerca, el **Cuervo** ciega cada 4 s al enemigo más cercano y la **Polilla** ralentiza los proyectiles que pasan cerca.
+
+**Dibujos.** El botín, los iconos de estado, los objetos y los asistentes se dibujan con Lienzo, y el dueño los aprueba antes de usarlos. Los números de esta sección son un primer reparto que se ajusta jugando.
 
 ## PWA
 
