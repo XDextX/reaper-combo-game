@@ -9,8 +9,9 @@ import { avanzar, crearSensacion, desplazamiento, impacto } from './sensacion';
 import { direccion, fotogramaEnBucle, fotogramaPorAvance } from './animacion';
 import { HOJAS, pintar } from './sprites';
 import { ALTO_ENEMIGO, ANCHO_ENEMIGO, MUERTE, RECUPERA, cajaEnemigo, crearCombate, pasoCombate, recibirGolpe, type Enemigo } from './enemigos';
-import { VIDA_MAX, anotar, crearVida, curar, herir, pasoVida } from './vida';
+import { anotar, crearVida, curar, herir, pasoVida } from './vida';
 import { pasoBotin, soltar, type Botin } from './botin';
+import { MEJORAS, aplicar, crearMejoras, danoExtra, robar, sortear, type Mejora } from './mejoras';
 
 const canvas = document.querySelector<HTMLCanvasElement>('#juego')!;
 const ctx = canvas.getContext('2d')!;
@@ -32,6 +33,7 @@ let vida = crearVida();
 let modo: 'combate' | 'practica' = 'combate';
 let combate = crearCombate(Math.random, espiritu);
 let botin: Botin[] = [];
+let mejoras = crearMejoras();
 const munecos = [crearMuneco(300, 90), crearMuneco(360, 142), crearMuneco(300, 195)];
 const detector = crearDetector();
 const contador = crearContador();
@@ -69,8 +71,8 @@ const caido = document.querySelector<HTMLElement>('#caido')!;
 const resumen = document.querySelector<HTMLElement>('#caido-resumen')!;
 const botonReintentar = document.querySelector<HTMLButtonElement>('#reintentar')!;
 function pintarVida(anunciar: boolean): void {
-  corazones.textContent = '♥'.repeat(vida.vida) + '♡'.repeat(VIDA_MAX - vida.vida);
-  if (anunciar) avisoVida.textContent = `Vida: ${vida.vida} de ${VIDA_MAX}`;
+  corazones.textContent = '♥'.repeat(vida.vida) + '♡'.repeat(vida.vidaMax - vida.vida);
+  if (anunciar) avisoVida.textContent = `Vida: ${vida.vida} de ${vida.vidaMax}`;
 }
 pintarVida(false);
 /** Un ataque enemigo alcanza al espíritu (lo llamarán los enemigos, tarea 2 del plan del combate). */
@@ -90,11 +92,60 @@ function reintentar(): void {
   contador.romper();
   chispas = [];
   botin = [];
+  mejoras = crearMejoras();
+  cerrarMejora();
+  pintarMejoras();
   caido.hidden = true;
   pintarVida(true);
   botonReintentar.blur(); // el foco no se queda en un botón oculto
 }
 botonReintentar.addEventListener('click', reintentar);
+
+// Alma inestable: el juego se pausa y se elige 1 de 3 mejoras (botones: teclado, toque y lector; el bucle añade stick y J).
+const panelMejora = document.querySelector<HTMLElement>('#mejora')!;
+const opciones = document.querySelector<HTMLElement>('#opciones')!;
+const mejorasHud = document.querySelector<HTMLElement>('#mejoras-hud')!;
+const ESPERA_MEJORA = 20; // pasos sin aceptar J, para que machacar no elija sin querer
+let eligiendo = 0; // 0: cerrado; si no, pasos desde que se abrió
+let moverAntes = 0;
+const botonesMejora = () => [...opciones.children] as HTMLButtonElement[];
+function pintarMejoras(): void {
+  mejorasHud.textContent = (Object.keys(MEJORAS) as Mejora[]).filter((m) => mejoras[m] > 0)
+    .map((m) => `${MEJORAS[m].nombre}${mejoras[m] > 1 ? ` ×${mejoras[m]}` : ''}`).join(' · ');
+}
+function abrirMejora(): void {
+  opciones.replaceChildren(...sortear().map((m) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    const nombre = document.createElement('strong');
+    nombre.textContent = MEJORAS[m].nombre;
+    b.append(nombre, MEJORAS[m].texto);
+    b.addEventListener('click', () => elegirMejora(m));
+    return b;
+  }));
+  panelMejora.hidden = false;
+  eligiendo = 1;
+  moverAntes = 0;
+  botonesMejora()[0].focus();
+}
+function cerrarMejora(): void {
+  panelMejora.hidden = true;
+  eligiendo = 0;
+  (document.activeElement as HTMLElement | null)?.blur?.(); // el foco no se queda en un botón oculto
+}
+function elegirMejora(m: Mejora): void {
+  aplicar(mejoras, vida, m);
+  pintarVida(true);
+  pintarMejoras();
+  cerrarMejora();
+}
+panelMejora.addEventListener('keydown', (e) => { // modal: Tab da la vuelta entre las tres opciones
+  if (e.key !== 'Tab') return;
+  e.preventDefault();
+  const b = botonesMejora();
+  const i = b.indexOf(document.activeElement as HTMLButtonElement);
+  b[(i + (e.shiftKey ? -1 : 1) + b.length) % b.length].focus();
+});
 // «Has caído» es modal: con Tab el foco no sale de su único botón.
 caido.addEventListener('keydown', (e) => {
   if (e.key === 'Tab') { e.preventDefault(); botonReintentar.focus(); }
@@ -119,6 +170,16 @@ function actualizar(): void {
     if (acciones.some((p) => p.accion === 'L')) reintentar(); // J reintenta
     return;
   }
+  if (eligiendo) {
+    eligiendo++;
+    const b = botonesMejora();
+    const i = b.indexOf(document.activeElement as HTMLButtonElement);
+    const dir = Math.abs(mover.x) > 0.5 ? Math.sign(mover.x) : Math.abs(mover.y) > 0.5 ? Math.sign(mover.y) : 0;
+    if (dir !== 0 && dir !== moverAntes) b[(Math.max(i, 0) + dir + b.length) % b.length].focus();
+    moverAntes = dir;
+    if (eligiendo > ESPERA_MEJORA && i >= 0 && acciones.some((p) => p.accion === 'L')) b[i].click();
+    return;
+  }
   tick++;
   pasoVida(vida);
   for (const p of acciones) {
@@ -137,12 +198,12 @@ function actualizar(): void {
         for (const e of tocados) {
           if (destella) destellan.add(e);
           else destellan.delete(e);
-          const r = recibirGolpe(e, golpe, espiritu);
+          const r = recibirGolpe(e, golpe, espiritu, danoExtra(mejoras, golpe.combo !== null || golpe.accion === 'P'));
           if (r === 'bloqueo') chispas.push({ x: e.x, y: e.y, tipo: 'B', vida: VIDA_CHISPA });
           if (r === 'muerte') {
             const b = soltar(e.x, e.y);
-            // shortcut: de momento solo cae el alma que cura; el equipo y el alma inestable llegan en las tareas 2 y 4 del plan RPG.
-            if (b?.tipo === 'cura') botin.push(b);
+            // shortcut: el equipo aún no cae; llega con la tarea 4 del plan RPG.
+            if (b && b.tipo !== 'equipo') botin.push(b);
           }
           else alcanzados.push(e);
         }
@@ -154,6 +215,7 @@ function actualizar(): void {
       alcanzados.forEach(() => {
         contador.golpe(ahora);
         anotar(vida, contador.golpes);
+        if (robar(mejoras, vida, contador.golpes)) pintarVida(true);
       });
       if (alcanzados.length) impacto(sensacion, golpe, alcanzados, maxTemblor());
       const tipo = golpe.combo || golpe.accion === 'P' ? 'P' : 'L';
@@ -164,6 +226,7 @@ function actualizar(): void {
       pasoCombate(combate, espiritu, cuerpo, golpe?.caja ?? null, danarEspiritu);
       botin = pasoBotin(botin, cuerpo, (b) => {
         if (b.tipo === 'cura') { curar(vida); pintarVida(true); }
+        if (b.tipo === 'inestable') abrirMejora();
       });
     } else for (const m of munecos) actualizarMuneco(m);
   }
@@ -250,7 +313,7 @@ function dibujar(): void {
   for (const b of botin) {
     // shortcut: alma provisional hasta la tarea 6 (dibujos). En sus últimos 3 s late suave, sin destellar.
     ctx.globalAlpha = b.vida > 180 ? 1 : 0.55 + 0.45 * Math.cos(b.vida / 6);
-    ctx.fillStyle = '#9fe6f0';
+    ctx.fillStyle = b.tipo === 'inestable' ? '#ff3fb8' : '#9fe6f0';
     ctx.fillRect(Math.round(b.x) - 3, Math.round(b.y) - 3, 6, 6);
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(Math.round(b.x) - 1, Math.round(b.y) - 2, 2, 2);

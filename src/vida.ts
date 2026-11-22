@@ -3,7 +3,7 @@ export const VIDA_MAX = 5;
 export const INVULNERABLE = 60; // pasos: 1 s a 60 Hz
 
 export function crearVida() {
-  return { vida: VIDA_MAX, invulnerable: 0, golpes: 0, mejorCombo: 0 };
+  return { vida: VIDA_MAX, vidaMax: VIDA_MAX, invulnerable: 0, golpes: 0, mejorCombo: 0 };
 }
 export type Vida = ReturnType<typeof crearVida>;
 
@@ -27,5 +27,5 @@ export function anotar(v: Vida, combo: number): void {
 
 /** Un alma que cura: +1 corazón sin pasar del máximo. */
 export function curar(v: Vida): void {
-  if (v.vida > 0) v.vida = Math.min(VIDA_MAX, v.vida + 1);
+  if (v.vida > 0) v.vida = Math.min(v.vidaMax, v.vida + 1);
 }

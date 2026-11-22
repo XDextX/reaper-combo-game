@@ -48,14 +48,14 @@ export function dano(g: Golpe): number {
 export type Resultado = 'nada' | 'bloqueo' | 'dano' | 'muerte';
 
 /** Aplica un golpe del espíritu (que está en `desde`) al enemigo. */
-export function recibirGolpe(e: Enemigo, g: Golpe, desde: Vector): Resultado {
+export function recibirGolpe(e: Enemigo, g: Golpe, desde: Vector, extra = 0): Resultado {
   if (e.estado === 'muerto') return 'nada';
   const dx = e.x - desde.x;
   const dy = e.y - desde.y;
   // El escudado para los ligeros sueltos que le llegan de frente: el golpe viene del lado al que mira.
   const deFrente = e.mira.x * -dx + e.mira.y * -dy > 0;
   if (e.tipo === 'escudado' && g.accion === 'L' && !g.combo && deFrente) return 'bloqueo';
-  e.vida = Math.max(0, e.vida - dano(g));
+  e.vida = Math.max(0, e.vida - dano(g) - extra);
   const largo = Math.hypot(dx, dy) || 1;
   e.vx = (dx / largo) * g.empuje;
   e.vy = (dy / largo) * g.empuje;
