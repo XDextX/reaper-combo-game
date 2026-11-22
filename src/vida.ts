@@ -24,3 +24,8 @@ export function anotar(v: Vida, combo: number): void {
   v.golpes++;
   v.mejorCombo = Math.max(v.mejorCombo, combo);
 }
+
+/** Un alma que cura: +1 corazón sin pasar del máximo. */
+export function curar(v: Vida): void {
+  if (v.vida > 0) v.vida = Math.min(VIDA_MAX, v.vida + 1);
+}

@@ -9,7 +9,8 @@ import { avanzar, crearSensacion, desplazamiento, impacto } from './sensacion';
 import { direccion, fotogramaEnBucle, fotogramaPorAvance } from './animacion';
 import { HOJAS, pintar } from './sprites';
 import { ALTO_ENEMIGO, ANCHO_ENEMIGO, MUERTE, RECUPERA, cajaEnemigo, crearCombate, pasoCombate, recibirGolpe, type Enemigo } from './enemigos';
-import { VIDA_MAX, anotar, crearVida, herir, pasoVida } from './vida';
+import { VIDA_MAX, anotar, crearVida, curar, herir, pasoVida } from './vida';
+import { pasoBotin, soltar, type Botin } from './botin';
 
 const canvas = document.querySelector<HTMLCanvasElement>('#juego')!;
 const ctx = canvas.getContext('2d')!;
@@ -30,6 +31,7 @@ let vida = crearVida();
 // Combate (enemigos) o práctica (los muñecos de la v1); el botón del HUD los alterna.
 let modo: 'combate' | 'practica' = 'combate';
 let combate = crearCombate(Math.random, espiritu);
+let botin: Botin[] = [];
 const munecos = [crearMuneco(300, 90), crearMuneco(360, 142), crearMuneco(300, 195)];
 const detector = crearDetector();
 const contador = crearContador();
@@ -87,6 +89,7 @@ function reintentar(): void {
   combate = crearCombate(Math.random, espiritu);
   contador.romper();
   chispas = [];
+  botin = [];
   caido.hidden = true;
   pintarVida(true);
   botonReintentar.blur(); // el foco no se queda en un botón oculto
@@ -136,6 +139,11 @@ function actualizar(): void {
           else destellan.delete(e);
           const r = recibirGolpe(e, golpe, espiritu);
           if (r === 'bloqueo') chispas.push({ x: e.x, y: e.y, tipo: 'B', vida: VIDA_CHISPA });
+          if (r === 'muerte') {
+            const b = soltar(e.x, e.y);
+            // shortcut: de momento solo cae el alma que cura; el equipo y el alma inestable llegan en las tareas 2 y 4 del plan RPG.
+            if (b?.tipo === 'cura') botin.push(b);
+          }
           else alcanzados.push(e);
         }
       } else {
@@ -154,6 +162,9 @@ function actualizar(): void {
     if (modo === 'combate') {
       const cuerpo = { x: espiritu.x - 6, y: espiritu.y - 14, w: 12, h: 16 };
       pasoCombate(combate, espiritu, cuerpo, golpe?.caja ?? null, danarEspiritu);
+      botin = pasoBotin(botin, cuerpo, (b) => {
+        if (b.tipo === 'cura') { curar(vida); pintarVida(true); }
+      });
     } else for (const m of munecos) actualizarMuneco(m);
   }
   destellos.paso();
@@ -236,6 +247,15 @@ function dibujar(): void {
   ];
   figuras.sort((a, b) => a.y - b.y).forEach((f) => f.pinta());
 
+  for (const b of botin) {
+    // shortcut: alma provisional hasta la tarea 6 (dibujos). En sus últimos 3 s late suave, sin destellar.
+    ctx.globalAlpha = b.vida > 180 ? 1 : 0.55 + 0.45 * Math.cos(b.vida / 6);
+    ctx.fillStyle = '#9fe6f0';
+    ctx.fillRect(Math.round(b.x) - 3, Math.round(b.y) - 3, 6, 6);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(Math.round(b.x) - 1, Math.round(b.y) - 2, 2, 2);
+    ctx.globalAlpha = 1;
+  }
   for (const p of combate.proyectiles) {
     pintar(ctx, HOJAS.enemigos, 'orbe-1', Math.round(p.x) - 16, Math.round(p.y) - 16);
   }
