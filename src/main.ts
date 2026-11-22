@@ -40,6 +40,8 @@ let mejoras = crearMejoras();
 let equipo = crearEquipo();
 const equipoHud = document.querySelector<HTMLElement>('#equipo-hud')!;
 const avisoEquipo = document.querySelector<HTMLElement>('#aviso-equipo')!;
+/** Anuncia a los lectores; un aviso igual al anterior se cambia un poco para que se vuelva a leer. */
+const avisar = (texto: string) => { avisoEquipo.textContent = avisoEquipo.textContent === texto ? `${texto}​` : texto; };
 /** El HUD dice qué se lleva y qué hace. */
 function pintarEquipo(): void {
   equipoHud.replaceChildren(...[equipo.guadana, equipo.amuleto, equipo.tunica, equipo.asistente].filter((o) => o !== null).map((o) => {
@@ -96,7 +98,7 @@ function danarEspiritu(): void {
   const esquivando = espiritu.estado === 'esquivando';
   if (vida.invulnerable === 0 && !esquivando && velo(equipo)) { // la túnica del velo para este golpe
     vida.invulnerable = INVULNERABLE + invulnerableExtra(equipo);
-    avisoEquipo.textContent = 'El velo paró el golpe';
+    avisar('El velo paró el golpe');
     return;
   }
   if (!herir(vida, esquivando, invulnerableExtra(equipo))) return;
@@ -105,7 +107,12 @@ function danarEspiritu(): void {
   if (vida.vida > 0) return;
   resumen.textContent = `${vida.golpes} ${vida.golpes === 1 ? 'golpe' : 'golpes'} · mejor combo: ${vida.mejorCombo}`;
   caido.hidden = false;
+  modal(true);
   botonReintentar.focus();
+}
+const fueraDelDialogo = ['#modo', '#lista', '#ayuda', '#tactil'].map((s) => document.querySelector<HTMLElement>(s)!);
+function modal(abierto: boolean): void {
+  for (const el of fueraDelDialogo) el.inert = abierto;
 }
 function reintentar(): void {
   espiritu = crearEspiritu(120, ALTO / 2);
@@ -120,6 +127,7 @@ function reintentar(): void {
   cerrarMejora();
   pintarMejoras();
   caido.hidden = true;
+  modal(false);
   pintarVida(true);
   botonReintentar.blur(); // el foco no se queda en un botón oculto
 }
@@ -160,6 +168,7 @@ function abrirEleccion(titulo: string, ayuda: string, lista: Eleccion[]): void {
     return b;
   }));
   panelMejora.hidden = false;
+  modal(true);
   eligiendo = 1;
   moverAntes = 0;
   botonesMejora()[0].focus();
@@ -168,7 +177,7 @@ const abrirMejora = () => abrirEleccion('Alma inestable', 'Elige una mejora: fle
   sortear().map((m) => ({ ...describir(m), elegir: () => elegirMejora(m) })));
 function ponerObjeto(o: Objeto): void {
   const quitado = equipar(equipo, o, vida, espiritu);
-  avisoEquipo.textContent = `${o.nombre}: ${o.texto}${quitado && quitado.id !== o.id ? ` Sustituye a ${quitado.nombre}.` : ''}`;
+  avisar(`${o.nombre}: ${o.texto}${quitado && quitado.id !== o.id ? ` Sustituye a ${quitado.nombre}.` : ''}`);
   pintarEquipo();
   pintarVida(true); // el amuleto del corazón cambia la vida máxima
 }
@@ -178,17 +187,18 @@ function recogerObjeto(o: Objeto): void {
   if (!actual) return ponerObjeto(o);
   abrirEleccion(`${HUECO[o.hueco]}: ${o.nombre}`, 'Equipa la nueva o quédate con lo que llevas (lo otro se pierde).', [
     { nombre: `Equipar ${o.nombre}`, texto: o.texto, elegir: () => ponerObjeto(o) },
-    { nombre: `Seguir con ${actual.nombre}`, texto: actual.texto, elegir: () => { avisoEquipo.textContent = `Dejas ${o.nombre}.`; } },
+    { nombre: `Seguir con ${actual.nombre}`, texto: actual.texto, elegir: () => { avisar(`Dejas ${o.nombre}.`); } },
   ]);
 }
 function cerrarMejora(): void {
   panelMejora.hidden = true;
+  modal(false);
   eligiendo = 0;
   (document.activeElement as HTMLElement | null)?.blur?.(); // el foco no se queda en un botón oculto
 }
 function elegirMejora(m: Opcion): void {
   aplicar(mejoras, vida, m);
-  avisoEquipo.textContent = `${describir(m).nombre} elegida.`;
+  avisar(`${describir(m).nombre} elegida.`);
   pintarVida(true);
   pintarMejoras();
 }
@@ -288,7 +298,7 @@ function actualizar(): void {
       if (cegado) aplicarEstado(cegado.estados, 'ceguera', { x: LIMITES.x0 + Math.random() * (LIMITES.x1 - LIMITES.x0), y: LIMITES.y0 + Math.random() * (LIMITES.y1 - LIMITES.y0) });
       if (escarcha(equipo)) { // túnica de escarcha: los enemigos de al lado van lentos
         for (const e of combate.enemigos) {
-          if (e.estado !== 'muerto' && Math.hypot(e.x - espiritu.x, e.y - espiritu.y) < ESCARCHA_RADIO) aplicarEstado(e.estados, 'lentitud');
+          if (e.estado !== 'muerto' && Math.hypot(e.x - espiritu.x, e.y - espiritu.y) < ESCARCHA_RADIO) e.estados.lentitud = Math.max(e.estados.lentitud, 10); // se acaba al poco de alejarse
         }
       }
       // Muerto no se recoge nada; y solo una cosa con diálogo por paso (las demás siguen en el suelo).
