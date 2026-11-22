@@ -257,3 +257,6 @@ function dibujar(): void {
 }
 
 arrancar(actualizar, dibujar);
+
+// PWA: el service worker solo existe en la versión compilada (vite.config.ts lo genera).
+if (import.meta.env.PROD && 'serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');

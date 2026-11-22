@@ -1,0 +1,75 @@
+{
+ "page": {
+  "width": 192,
+  "height": 192
+ },
+ "layers": [
+  {
+   "id": "fondo",
+   "type": "rect",
+   "x": 0,
+   "y": 0,
+   "width": 192,
+   "height": 192,
+   "fill": "#07070b"
+  },
+  {
+   "id": "espiritu",
+   "type": "pixels",
+   "x": 16,
+   "y": 16,
+   "width": 160,
+   "height": 160,
+   "palette": {
+    ".": "transparent",
+    "o": "#24343c",
+    "c": "#eef6f8",
+    "C": "#ffffff",
+    "s": "#8fd3e0",
+    "k": "#07070b",
+    "m": "#ff3fb8",
+    "w": "#ffffff",
+    "h": "#7d8f9a",
+    "b": "#c8d6dc",
+    "M": "#ff3fb8",
+    "f": "#eef6f866",
+    "F": "#8fd3e066",
+    "r": "#ff3fb8aa"
+   },
+   "rows": [
+    "................................",
+    "................................",
+    ".......................oooo.....",
+    "...........ooooo......obbbboo...",
+    ".........oocccccoo...ohbbbbbbo..",
+    "........occCccccsso..ohMMMMbbbo.",
+    ".......occCcccccssso.ohooooMMbo.",
+    "......occCCcccccssssooho...oMbbo",
+    "......occCccccccssssooho....oMbo",
+    ".....occccccccccsssssoho....oMbo",
+    ".....occccckkkkkkssssoho....oMMo",
+    ".....occcckkkkkkkksssoho.....oo.",
+    ".....occcckwmkkwmksssoho........",
+    ".....occcckmmkkmmksssoho........",
+    "......occckkkkkkkkssooho........",
+    "......occcckkkkkksssooho........",
+    ".....occccccccccsssssoho........",
+    ".....occccccccccsssssoho........",
+    "......occcccccccsssccoho........",
+    "......occcccccccsssccoho........",
+    ".......occccccccsssoooho........",
+    ".......occccccccssso.oho........",
+    ".......occccccccssso.oho........",
+    "........occcccccsso..oho........",
+    "........occcccccsso..oho........",
+    ".........occccccso...oho........",
+    ".........occccccso...oho........",
+    "........ooccccccsoo..oho........",
+    ".......occoccoccosso.oho........",
+    ".......occooooccooo..oho........",
+    "........oo....oo......o.........",
+    "................................"
+   ]
+  }
+ ]
+}

@@ -10,5 +10,6 @@
     "resolveJsonModule": true,
     "types": ["vite/client"]
   },
-  "include": ["src", "vite.config.ts"]
+  // vite.config.ts usa node:fs y node:crypto; Vite lo comprueba al cargarlo (sin @types/node, que sería una dependencia nueva).
+  "include": ["src"]
 }

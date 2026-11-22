@@ -100,6 +100,15 @@ El juego lee las regiones directamente del `.kit.json` generado. Un mismo mapa s
 - L, P y E no se distinguen solo por color: cada uno lleva su letra o su forma.
 - El canvas lleva `role="img"` y una etiqueta. El límite de la arena tiene un contraste de al menos 3:1 con el fondo.
 
+## PWA
+
+Aprobado por el dueño el 2026-11-22. El juego se puede instalar en el móvil y en el escritorio, y funciona sin conexión después de la primera visita.
+
+- **Manifiesto:** nombre «Reaper Combo Game», nombre corto «Reaper», pantalla completa en horizontal (`display: fullscreen`, `orientation: landscape`) y fondo y color de tema `#07070b`.
+- **Iconos:** el espíritu sobre fondo oscuro, dibujado con Lienzo a 192, 512 y 512 *maskable*. El dueño los aprueba antes de usarlos.
+- **Sin conexión:** un service worker escrito a mano, sin dependencias nuevas, guarda en caché todos los archivos del juego al instalarse. Cada versión nueva lleva su propio nombre de caché, y el worker sustituye la caché anterior al activarse.
+- **Ruta:** como la demo va en GitHub Pages bajo una subcarpeta, todas las rutas son relativas.
+
 ## Tecnología
 
 - Vite + TypeScript, con Canvas 2D a mano y sin motor de juegos.
