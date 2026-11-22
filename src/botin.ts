@@ -24,12 +24,12 @@ export function cajaBotin(b: Botin): Caja {
   return { x: b.x - LADO / 2, y: b.y - LADO / 2, w: LADO, h: LADO };
 }
 
-/** Un paso: caduca lo viejo y recoge lo que toca el cuerpo del espíritu. Devuelve lo que queda en el suelo. */
-export function pasoBotin(lista: Botin[], cuerpo: Caja, recoger: (b: Botin) => void): Botin[] {
+/** Un paso: caduca lo viejo y recoge lo que toca el cuerpo del espíritu. Devuelve lo que queda en el suelo;
+ * `recoger` devuelve true si lo deja en el suelo. */
+export function pasoBotin(lista: Botin[], cuerpo: Caja, recoger: (b: Botin) => boolean | void): Botin[] {
   return lista.filter((b) => {
     if (--b.vida <= 0) return false;
     if (!solapan(cuerpo, cajaBotin(b))) return true;
-    recoger(b);
-    return false;
+    return recoger(b) === true;
   });
 }

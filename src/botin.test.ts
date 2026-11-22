@@ -22,7 +22,7 @@ describe('pasoBotin', () => {
   });
   it('se recoge al pasar por encima', () => {
     const recogidos: Botin[] = [];
-    const lista = pasoBotin([{ tipo: 'cura', x: 10, y: 10, vida: VIDA_BOTIN }], { x: 8, y: 8, w: 4, h: 4 }, (b) => recogidos.push(b));
+    const lista = pasoBotin([{ tipo: 'cura', x: 10, y: 10, vida: VIDA_BOTIN }], { x: 8, y: 8, w: 4, h: 4 }, (b) => { recogidos.push(b); });
     expect(lista).toEqual([]);
     expect(recogidos.map((b) => b.tipo)).toEqual(['cura']);
   });
@@ -37,5 +37,9 @@ describe('curar', () => {
     v.vida = VIDA_MAX;
     curar(v);
     expect(v.vida).toBe(VIDA_MAX);
+  });
+  it('lo que recoger deja (devuelve true) sigue en el suelo', () => {
+    const b = { tipo: 'inestable' as const, x: 10, y: 10, vida: VIDA_BOTIN };
+    expect(pasoBotin([b], { x: 8, y: 8, w: 4, h: 4 }, () => true)).toEqual([b]);
   });
 });

@@ -95,7 +95,7 @@ pintarVida(false);
 function danarEspiritu(): void {
   const esquivando = espiritu.estado === 'esquivando';
   if (vida.invulnerable === 0 && !esquivando && velo(equipo)) { // la túnica del velo para este golpe
-    vida.invulnerable = INVULNERABLE;
+    vida.invulnerable = INVULNERABLE + invulnerableExtra(equipo);
     avisoEquipo.textContent = 'El velo paró el golpe';
     return;
   }
@@ -152,7 +152,11 @@ function abrirEleccion(titulo: string, ayuda: string, lista: Eleccion[]): void {
     const n = document.createElement('strong');
     n.textContent = nombre;
     b.append(n, texto);
-    b.addEventListener('click', () => { elegir(); cerrarMejora(); });
+    b.addEventListener('click', () => {
+      if (eligiendo <= ESPERA_MEJORA) return; // Espacio o Intro machacados al abrir no eligen sin querer
+      elegir();
+      cerrarMejora();
+    });
     return b;
   }));
   panelMejora.hidden = false;
@@ -166,7 +170,7 @@ function ponerObjeto(o: Objeto): void {
   const quitado = equipar(equipo, o, vida, espiritu);
   avisoEquipo.textContent = `${o.nombre}: ${o.texto}${quitado && quitado.id !== o.id ? ` Sustituye a ${quitado.nombre}.` : ''}`;
   pintarEquipo();
-  pintarVida(false);
+  pintarVida(true); // el amuleto del corazón cambia la vida máxima
 }
 /** Equipo nuevo: con el hueco libre se pone sin preguntar; si no, se elige entre el nuevo y el que llevas. */
 function recogerObjeto(o: Objeto): void {
@@ -184,6 +188,7 @@ function cerrarMejora(): void {
 }
 function elegirMejora(m: Opcion): void {
   aplicar(mejoras, vida, m);
+  avisoEquipo.textContent = `${describir(m).nombre} elegida.`;
   pintarVida(true);
   pintarMejoras();
 }
@@ -286,7 +291,9 @@ function actualizar(): void {
           if (e.estado !== 'muerto' && Math.hypot(e.x - espiritu.x, e.y - espiritu.y) < ESCARCHA_RADIO) aplicarEstado(e.estados, 'lentitud');
         }
       }
-      botin = pasoBotin(botin, cuerpo, (b) => {
+      // Muerto no se recoge nada; y solo una cosa con diálogo por paso (las demás siguen en el suelo).
+      if (vida.vida > 0) botin = pasoBotin(botin, cuerpo, (b) => {
+        if (b.tipo !== 'cura' && eligiendo) return true;
         if (b.tipo === 'cura') { curar(vida); pintarVida(true); }
         if (b.tipo === 'inestable') abrirMejora();
         if (b.objeto) recogerObjeto(b.objeto);
