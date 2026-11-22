@@ -32,7 +32,7 @@ export function crearEnemigo(tipo: Tipo, x: number, y: number) {
   };
 }
 export type Enemigo = ReturnType<typeof crearEnemigo>;
-export type Proyectil = { x: number; y: number; vx: number; vy: number; vida: number };
+export type Proyectil = { x: number; y: number; vx: number; vy: number; vida: number; lento?: boolean }; // lento: ya lo frenó la polilla
 
 export function cajaEnemigo(e: Enemigo): Caja {
   return { x: e.x - ANCHO_ENEMIGO / 2, y: e.y - ALTO_ENEMIGO / 2, w: ANCHO_ENEMIGO, h: ALTO_ENEMIGO };

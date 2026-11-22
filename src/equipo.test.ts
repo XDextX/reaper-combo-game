@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { OBJETOS, PROB_GUADANA, SOMBRA_EXTRA, VELO_CADA, crearEquipo, equipar, estadoGuadana, pasoEquipo, roboExtra, velo } from './equipo';
+import { CUERVO_CADA, OBJETOS, blancoCuervo, danoFarol, frenarProyectiles, PROB_GUADANA, SOMBRA_EXTRA, VELO_CADA, crearEquipo, equipar, estadoGuadana, pasoEquipo, roboExtra, velo } from './equipo';
 import { crearEspiritu } from './espiritu';
 import { crearMejoras, robar } from './mejoras';
 import { VIDA_MAX, crearVida } from './vida';
@@ -54,5 +54,32 @@ describe('equipo', () => {
     equipar(eq, objeto('sanguijuela'), v, e);
     expect(robar(crearMejoras(), v, 10, roboExtra(eq))).toBe(true);
     expect(v.vida).toBe(3);
+  });
+  it('farol: +1 de daño solo con enemigos cerca', () => {
+    const { eq, v, e } = preparar();
+    expect(danoFarol(eq, e, [{ x: 10, y: 0 }])).toBe(0);
+    equipar(eq, objeto('farol'), v, e);
+    expect(danoFarol(eq, e, [{ x: 10, y: 0 }])).toBe(1);
+    expect(danoFarol(eq, e, [{ x: 200, y: 0 }])).toBe(0);
+  });
+  it('cuervo: ciega al más cercano cada 4 s', () => {
+    const { eq, v, e } = preparar();
+    equipar(eq, objeto('cuervo-asistente'), v, e);
+    const lejos = { x: 100, y: 0 };
+    const junto = { x: 20, y: 0 };
+    expect(blancoCuervo(eq, e, [lejos, junto])).toBeNull();
+    for (let i = 0; i < CUERVO_CADA; i++) pasoEquipo(eq);
+    expect(blancoCuervo(eq, e, [lejos, junto])).toBe(junto);
+    expect(blancoCuervo(eq, e, [lejos, junto])).toBeNull(); // vuelve a esperar
+  });
+  it('polilla: frena a la mitad los proyectiles cercanos, una sola vez', () => {
+    const { eq, v, e } = preparar();
+    equipar(eq, objeto('polilla'), v, e);
+    const cerca = { x: 10, y: 0, vx: 2, vy: 0 };
+    const lejos = { x: 200, y: 0, vx: 2, vy: 0 };
+    frenarProyectiles(eq, e, [cerca, lejos]);
+    frenarProyectiles(eq, e, [cerca, lejos]);
+    expect(cerca.vx).toBe(1);
+    expect(lejos.vx).toBe(2);
   });
 });

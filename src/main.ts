@@ -10,7 +10,7 @@ import { direccion, fotogramaEnBucle, fotogramaPorAvance } from './animacion';
 import { HOJAS, pintar } from './sprites';
 import { ALTO_ENEMIGO, ANCHO_ENEMIGO, MUERTE, RECUPERA, cajaEnemigo, crearCombate, pasoCombate, recibirGolpe, type Enemigo } from './enemigos';
 import { INVULNERABLE, anotar, crearVida, curar, herir, pasoVida } from './vida';
-import { crearEquipo, equipar, escarcha, estadoGuadana, invulnerableExtra, pasoEquipo, roboExtra, sortearObjeto, velo, ESCARCHA_RADIO, HUECO, type Objeto } from './equipo';
+import { crearEquipo, equipar, escarcha, estadoGuadana, invulnerableExtra, pasoEquipo, roboExtra, sortearObjeto, velo, ESCARCHA_RADIO, HUECO, blancoCuervo, danoFarol, frenarProyectiles, type Objeto } from './equipo';
 import { aplicarEstado } from './estados';
 import { pasoBotin, soltar, type Botin } from './botin';
 import { aplicar, crearMejoras, danoExtra, describir, infusion, robar, sortear, type Opcion } from './mejoras';
@@ -42,7 +42,7 @@ const equipoHud = document.querySelector<HTMLElement>('#equipo-hud')!;
 const avisoEquipo = document.querySelector<HTMLElement>('#aviso-equipo')!;
 /** El HUD dice qué se lleva y qué hace. */
 function pintarEquipo(): void {
-  equipoHud.replaceChildren(...[equipo.guadana, equipo.amuleto, equipo.tunica].filter((o) => o !== null).map((o) => {
+  equipoHud.replaceChildren(...[equipo.guadana, equipo.amuleto, equipo.tunica, equipo.asistente].filter((o) => o !== null).map((o) => {
     const li = document.createElement('li');
     const nombre = document.createElement('strong');
     nombre.textContent = o.nombre;
@@ -210,6 +210,8 @@ let tick = 0;
 const VIDA_CHISPA = 12;
 let chispas: { x: number; y: number; tipo: 'L' | 'P' | 'B'; vida: number }[] = []; // B: bloqueo del escudado
 
+const vivos = () => combate.enemigos.filter((e) => e.estado !== 'muerto');
+
 function soltarBotin(e: { x: number; y: number }): void {
   const b = soltar(e.x, e.y);
   if (b?.tipo === 'equipo') b.objeto = sortearObjeto(); // se decide al caer, para ver su hueco en el suelo
@@ -254,7 +256,7 @@ function actualizar(): void {
           if (destella) destellan.add(e);
           else destellan.delete(e);
           const rumbo = { x: LIMITES.x0 + Math.random() * (LIMITES.x1 - LIMITES.x0), y: LIMITES.y0 + Math.random() * (LIMITES.y1 - LIMITES.y0) };
-          const r = recibirGolpe(e, golpe, espiritu, danoExtra(mejoras, golpe.combo !== null || golpe.accion === 'P'), infusion(mejoras) ?? estadoGuadana(equipo), rumbo);
+          const r = recibirGolpe(e, golpe, espiritu, danoExtra(mejoras, golpe.combo !== null || golpe.accion === 'P') + danoFarol(equipo, espiritu, vivos()), infusion(mejoras) ?? estadoGuadana(equipo), rumbo);
           if (r === 'bloqueo') chispas.push({ x: e.x, y: e.y, tipo: 'B', vida: VIDA_CHISPA });
           if (r === 'muerte') soltarBotin(e);
           else alcanzados.push(e);
@@ -276,6 +278,9 @@ function actualizar(): void {
     if (modo === 'combate') {
       const cuerpo = { x: espiritu.x - 6, y: espiritu.y - 14, w: 12, h: 16 };
       pasoCombate(combate, espiritu, cuerpo, golpe?.caja ?? null, danarEspiritu, Math.random, soltarBotin);
+      frenarProyectiles(equipo, espiritu, combate.proyectiles);
+      const cegado = blancoCuervo(equipo, espiritu, vivos());
+      if (cegado) aplicarEstado(cegado.estados, 'ceguera', { x: LIMITES.x0 + Math.random() * (LIMITES.x1 - LIMITES.x0), y: LIMITES.y0 + Math.random() * (LIMITES.y1 - LIMITES.y0) });
       if (escarcha(equipo)) { // túnica de escarcha: los enemigos de al lado van lentos
         for (const e of combate.enemigos) {
           if (e.estado !== 'muerto' && Math.hypot(e.x - espiritu.x, e.y - espiritu.y) < ESCARCHA_RADIO) aplicarEstado(e.estados, 'lentitud');
@@ -384,13 +389,17 @@ function dibujar(): void {
     ctx.fillRect(Math.round(b.x) - 3, Math.round(b.y) - 3, 6, 6);
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(Math.round(b.x) - 1, Math.round(b.y) - 2, 2, 2);
-    if (b.objeto) { // inicial del hueco: G guadaña, A amuleto, T túnica
+    if (b.objeto) { // inicial del hueco: G guadaña, A amuleto, T túnica, E espíritu asistente
       ctx.fillStyle = '#e0c050';
       ctx.font = 'bold 8px monospace';
       ctx.textAlign = 'center';
       ctx.fillText(HUECO[b.objeto.hueco][0], Math.round(b.x), Math.round(b.y) - 5);
     }
     ctx.globalAlpha = 1;
+  }
+  if (equipo.asistente && modo === 'combate') { // shortcut: asistente provisional (un punto que flota detrás) hasta la tarea 6
+    ctx.fillStyle = { farol: '#ffb347', 'cuervo-asistente': '#8a7bd8', polilla: '#e8e0c0' }[equipo.asistente.id] ?? '#fff';
+    ctx.fillRect(Math.round(espiritu.x - espiritu.mira.x * 12) - 2, Math.round(espiritu.y - 14 + Math.sin(tick / 20) * 2) - 2, 4, 4);
   }
   for (const p of combate.proyectiles) {
     pintar(ctx, HOJAS.enemigos, 'orbe-1', Math.round(p.x) - 16, Math.round(p.y) - 16);

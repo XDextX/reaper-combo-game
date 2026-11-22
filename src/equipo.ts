@@ -3,8 +3,8 @@ import type { Espiritu } from './espiritu';
 import type { Estado } from './estados';
 import type { Vida } from './vida';
 
-export type Hueco = 'guadana' | 'amuleto' | 'tunica';
-export const HUECO: Record<Hueco, string> = { guadana: 'Guadaña', amuleto: 'Amuleto', tunica: 'Túnica' };
+export type Hueco = 'guadana' | 'amuleto' | 'tunica' | 'asistente';
+export const HUECO: Record<Hueco, string> = { guadana: 'Guadaña', amuleto: 'Amuleto', tunica: 'Túnica', asistente: 'Espíritu' }; // inicial en el suelo: G, A, T, E
 export type Objeto = { id: string; hueco: Hueco; nombre: string; texto: string; estado?: Estado };
 
 export const PROB_GUADANA = 0.25; // cada golpe aplica el estado de la guadaña con esta probabilidad
@@ -12,6 +12,9 @@ export const VELO_CADA = 1200; // pasos: la túnica del velo para un golpe cada 
 export const RELOJ_EXTRA = 30; // pasos: +0,5 s sin recibir daño tras un golpe
 export const SOMBRA_EXTRA = 7; // pasos: la esquiva dura un 50 % más (14 → 21)
 export const ESCARCHA_RADIO = 40;
+export const FAROL_RADIO = 60; // +1 de daño con algún enemigo a esta distancia
+export const CUERVO_CADA = 240; // pasos: ciega al enemigo más cercano cada 4 s
+export const POLILLA_RADIO = 40; // los proyectiles que pasan a esta distancia van a la mitad
 
 const guadana = (id: string, nombre: string, estado: Estado, efecto: string): Objeto =>
   ({ id, hueco: 'guadana', nombre, estado, texto: `1 de cada 4 golpes ${efecto}.` });
@@ -29,10 +32,13 @@ export const OBJETOS: Objeto[] = [
   { id: 'velo', hueco: 'tunica', nombre: 'Túnica del velo', texto: 'Cada 20 s, un golpe no te quita vida.' },
   { id: 'escarcha', hueco: 'tunica', nombre: 'Túnica de escarcha', texto: 'Los enemigos a tu lado van lentos.' },
   { id: 'sombra', hueco: 'tunica', nombre: 'Túnica de sombra', texto: 'La esquiva dura un 50 % más.' },
+  { id: 'farol', hueco: 'asistente', nombre: 'Farol', texto: '+1 de daño mientras hay enemigos cerca.' },
+  { id: 'cuervo-asistente', hueco: 'asistente', nombre: 'Cuervo', texto: 'Cada 4 s ciega al enemigo más cercano.' },
+  { id: 'polilla', hueco: 'asistente', nombre: 'Polilla', texto: 'Los proyectiles que pasan cerca van más lentos.' },
 ];
 
 export function crearEquipo() {
-  return { guadana: null as Objeto | null, amuleto: null as Objeto | null, tunica: null as Objeto | null, velo: 0 };
+  return { guadana: null as Objeto | null, amuleto: null as Objeto | null, tunica: null as Objeto | null, asistente: null as Objeto | null, velo: 0, cuervo: CUERVO_CADA };
 }
 export type Equipo = ReturnType<typeof crearEquipo>;
 
@@ -40,7 +46,7 @@ export function sortearObjeto(azar = Math.random): Objeto {
   return OBJETOS[Math.floor(azar() * OBJETOS.length)];
 }
 
-const lleva = (eq: Equipo, id: string) => eq.guadana?.id === id || eq.amuleto?.id === id || eq.tunica?.id === id;
+const lleva = (eq: Equipo, id: string) => [eq.guadana, eq.amuleto, eq.tunica, eq.asistente].some((o) => o?.id === id);
 
 /** Se pone el objeto en su hueco, quitando los efectos del anterior. Devuelve el que se quitó, si había. */
 export function equipar(eq: Equipo, o: Objeto, v: Vida, espiritu: Espiritu): Objeto | null {
@@ -71,6 +77,33 @@ export function velo(eq: Equipo): boolean {
   return true;
 }
 
+type Punto = { x: number; y: number };
+const cerca = (a: Punto, b: Punto, r: number) => Math.hypot(a.x - b.x, a.y - b.y) < r;
+
+/** Farol: +1 de daño si hay algún enemigo cerca del espíritu. */
+export const danoFarol = (eq: Equipo, espiritu: Punto, enemigos: Punto[]) =>
+  (lleva(eq, 'farol') && enemigos.some((e) => cerca(e, espiritu, FAROL_RADIO)) ? 1 : 0);
+
+/** Cuervo: el enemigo más cercano al que toca cegar en este paso, o ninguno. */
+export function blancoCuervo<T extends Punto>(eq: Equipo, espiritu: Punto, enemigos: T[]): T | null {
+  if (!lleva(eq, 'cuervo-asistente') || eq.cuervo > 0 || enemigos.length === 0) return null;
+  eq.cuervo = CUERVO_CADA;
+  const d = (e: T) => Math.hypot(e.x - espiritu.x, e.y - espiritu.y);
+  return enemigos.reduce((a, b) => (d(b) < d(a) ? b : a));
+}
+
+/** Polilla: los proyectiles que pasan cerca van a la mitad, una sola vez cada uno. */
+export function frenarProyectiles(eq: Equipo, espiritu: Punto, lista: (Punto & { vx: number; vy: number; lento?: boolean })[]): void {
+  if (!lleva(eq, 'polilla')) return;
+  for (const p of lista) {
+    if (p.lento || !cerca(p, espiritu, POLILLA_RADIO)) continue;
+    p.vx /= 2;
+    p.vy /= 2;
+    p.lento = true;
+  }
+}
+
 export function pasoEquipo(eq: Equipo): void {
   if (eq.velo > 0) eq.velo--;
+  if (eq.cuervo > 0) eq.cuervo--;
 }
