@@ -260,3 +260,27 @@ arrancar(actualizar, dibujar);
 
 // PWA: el service worker solo existe en la versión compilada (vite.config.ts lo genera).
 if (import.meta.env.PROD && 'serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
+
+// Indicador de conexión: comprueba que el servidor responde, no solo que hay red.
+// El parámetro «comprobar» hace que el service worker deje pasar la petición sin usar la caché.
+const conexion = document.querySelector<HTMLElement>('#conexion')!;
+function pintarConexion(enLinea: boolean): void {
+  const texto = enLinea ? '● En línea' : '○ Sin conexión (copia guardada)';
+  if (conexion.textContent !== texto) conexion.textContent = texto; // el lector solo anuncia los cambios
+  conexion.classList.toggle('sin', !enLinea);
+}
+async function comprobarConexion(): Promise<void> {
+  if (document.hidden) return;
+  if (!navigator.onLine) return pintarConexion(false);
+  try {
+    const r = await fetch(`./manifest.webmanifest?comprobar=${Date.now()}`, { cache: 'no-store', signal: AbortSignal.timeout(4000) });
+    pintarConexion(r.ok);
+  } catch {
+    pintarConexion(false);
+  }
+}
+addEventListener('online', comprobarConexion);
+addEventListener('offline', comprobarConexion);
+document.addEventListener('visibilitychange', comprobarConexion);
+setInterval(comprobarConexion, 15_000);
+comprobarConexion();

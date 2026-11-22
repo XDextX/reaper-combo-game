@@ -33,7 +33,7 @@ self.addEventListener('activate', (e) => {
 });
 // ignoreVary: el script del juego se pide con cabecera Origin y el servidor responde con Vary: Origin.
 self.addEventListener('fetch', (e) => {
-  if (e.request.method !== 'GET') return;
+  if (e.request.method !== 'GET' || new URL(e.request.url).searchParams.has('comprobar')) return; // el indicador de conexión va a la red
   e.respondWith(caches.match(e.request, { ignoreSearch: true, ignoreVary: true }).then((r) => r || fetch(e.request)));
 });
 `,

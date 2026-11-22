@@ -107,6 +107,7 @@ Aprobado por el dueño el 2026-11-22. El juego se puede instalar en el móvil y 
 - **Manifiesto:** nombre «Reaper Combo Game», nombre corto «Reaper», pantalla completa en horizontal (`display: fullscreen`, `orientation: landscape`) y fondo y color de tema `#07070b`.
 - **Iconos:** el espíritu sobre fondo oscuro, dibujado con Lienzo a 192, 512 y 512 *maskable*. El dueño los aprueba antes de usarlos.
 - **Sin conexión:** un service worker escrito a mano, sin dependencias nuevas, guarda en caché todos los archivos del juego al instalarse. Cada versión nueva lleva su propio nombre de caché, y el worker sustituye la caché anterior al activarse.
+- **Indicador:** el HUD dice «● En línea» si el servidor del juego responde, y «○ Sin conexión (copia guardada)» si no responde o no hay red. Lo comprueba cada 15 s (no con la pestaña oculta), al volver a la pestaña y al cambiar la red; los lectores de pantalla anuncian el cambio.
 - **Ruta:** como la demo va en GitHub Pages bajo una subcarpeta, todas las rutas son relativas.
 
 ## Tecnología
