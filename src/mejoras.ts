@@ -68,8 +68,9 @@ export function infusion(m: Mejoras, azar = Math.random): Estado | null {
 }
 
 /** Llamar con cada golpe que acierta y el número de golpes del combo: el robo cura cada 10 seguidos. */
-export function robar(m: Mejoras, v: Vida, golpesCombo: number): boolean {
-  if (m.robo === 0 || golpesCombo === 0 || golpesCombo % ROBO_CADA !== 0 || v.vida === v.vidaMax) return false;
-  for (let i = 0; i < m.robo; i++) curar(v); // cada robo acumulado cura un corazón más
+export function robar(m: Mejoras, v: Vida, golpesCombo: number, extra = 0): boolean {
+  const robo = m.robo + extra; // extra: amuleto sanguijuela
+  if (robo === 0 || golpesCombo === 0 || golpesCombo % ROBO_CADA !== 0 || v.vida === v.vidaMax) return false;
+  for (let i = 0; i < robo; i++) curar(v); // cada robo acumulado cura un corazón más
   return true;
 }

@@ -1,13 +1,14 @@
 // Botín que sueltan los enemigos al morir (spec, «Componentes RPG»).
 import type { Caja } from './espiritu';
 import { solapan } from './munecos';
+import type { Objeto } from './equipo';
 
 export type TipoBotin = 'equipo' | 'cura' | 'inestable';
 export const PROBABILIDAD: Record<TipoBotin, number> = { equipo: 0.1, cura: 0.15, inestable: 0.08 };
 export const VIDA_BOTIN = 600; // pasos: desaparece a los 10 s
 const LADO = 8;
 
-export type Botin = { tipo: TipoBotin; x: number; y: number; vida: number };
+export type Botin = { tipo: TipoBotin; x: number; y: number; vida: number; objeto?: Objeto };
 
 /** Lo que suelta un enemigo al morir en (x, y), o nada. Con una sola tirada, los tipos no se pisan. */
 export function soltar(x: number, y: number, azar = Math.random): Botin | null {

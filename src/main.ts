@@ -9,7 +9,9 @@ import { avanzar, crearSensacion, desplazamiento, impacto } from './sensacion';
 import { direccion, fotogramaEnBucle, fotogramaPorAvance } from './animacion';
 import { HOJAS, pintar } from './sprites';
 import { ALTO_ENEMIGO, ANCHO_ENEMIGO, MUERTE, RECUPERA, cajaEnemigo, crearCombate, pasoCombate, recibirGolpe, type Enemigo } from './enemigos';
-import { anotar, crearVida, curar, herir, pasoVida } from './vida';
+import { INVULNERABLE, anotar, crearVida, curar, herir, pasoVida } from './vida';
+import { crearEquipo, equipar, escarcha, estadoGuadana, invulnerableExtra, pasoEquipo, roboExtra, sortearObjeto, velo, ESCARCHA_RADIO, HUECO, type Objeto } from './equipo';
+import { aplicarEstado } from './estados';
 import { pasoBotin, soltar, type Botin } from './botin';
 import { aplicar, crearMejoras, danoExtra, describir, infusion, robar, sortear, type Opcion } from './mejoras';
 import { activos, type Estado } from './estados';
@@ -35,6 +37,19 @@ let modo: 'combate' | 'practica' = 'combate';
 let combate = crearCombate(Math.random, espiritu);
 let botin: Botin[] = [];
 let mejoras = crearMejoras();
+let equipo = crearEquipo();
+const equipoHud = document.querySelector<HTMLElement>('#equipo-hud')!;
+const avisoEquipo = document.querySelector<HTMLElement>('#aviso-equipo')!;
+/** El HUD dice qué se lleva y qué hace. */
+function pintarEquipo(): void {
+  equipoHud.replaceChildren(...[equipo.guadana, equipo.amuleto, equipo.tunica].filter((o) => o !== null).map((o) => {
+    const li = document.createElement('li');
+    const nombre = document.createElement('strong');
+    nombre.textContent = o.nombre;
+    li.append(nombre, ` ${o.texto}`);
+    return li;
+  }));
+}
 const munecos = [crearMuneco(300, 90), crearMuneco(360, 142), crearMuneco(300, 195)];
 const detector = crearDetector();
 const contador = crearContador();
@@ -78,7 +93,13 @@ function pintarVida(anunciar: boolean): void {
 pintarVida(false);
 /** Un ataque enemigo alcanza al espíritu (lo llamarán los enemigos, tarea 2 del plan del combate). */
 function danarEspiritu(): void {
-  if (!herir(vida, espiritu.estado === 'esquivando')) return;
+  const esquivando = espiritu.estado === 'esquivando';
+  if (vida.invulnerable === 0 && !esquivando && velo(equipo)) { // la túnica del velo para este golpe
+    vida.invulnerable = INVULNERABLE;
+    avisoEquipo.textContent = 'El velo paró el golpe';
+    return;
+  }
+  if (!herir(vida, esquivando, invulnerableExtra(equipo))) return;
   contador.romper();
   pintarVida(true);
   if (vida.vida > 0) return;
@@ -94,6 +115,8 @@ function reintentar(): void {
   chispas = [];
   botin = [];
   mejoras = crearMejoras();
+  equipo = crearEquipo();
+  pintarEquipo();
   cerrarMejora();
   pintarMejoras();
   caido.hidden = true;
@@ -116,20 +139,43 @@ function pintarMejoras(): void {
   mejorasHud.textContent = llevadas.filter(({ mejora }) => mejoras[mejora] > 0)
     .map((o) => `${describir(o).nombre}${mejoras[o.mejora] > 1 ? ` ×${mejoras[o.mejora]}` : ''}`).join(' · ');
 }
-function abrirMejora(): void {
-  opciones.replaceChildren(...sortear().map((m) => {
+type Eleccion = { nombre: string; texto: string; elegir: () => void };
+const tituloEleccion = document.querySelector<HTMLElement>('#mejora-titulo')!;
+const ayudaEleccion = document.querySelector<HTMLElement>('#mejora-ayuda')!;
+/** Pausa el juego con un diálogo de botones (alma inestable o equipo nuevo). */
+function abrirEleccion(titulo: string, ayuda: string, lista: Eleccion[]): void {
+  tituloEleccion.textContent = titulo;
+  ayudaEleccion.textContent = ayuda;
+  opciones.replaceChildren(...lista.map(({ nombre, texto, elegir }) => {
     const b = document.createElement('button');
     b.type = 'button';
-    const nombre = document.createElement('strong');
-    nombre.textContent = describir(m).nombre;
-    b.append(nombre, describir(m).texto);
-    b.addEventListener('click', () => elegirMejora(m));
+    const n = document.createElement('strong');
+    n.textContent = nombre;
+    b.append(n, texto);
+    b.addEventListener('click', () => { elegir(); cerrarMejora(); });
     return b;
   }));
   panelMejora.hidden = false;
   eligiendo = 1;
   moverAntes = 0;
   botonesMejora()[0].focus();
+}
+const abrirMejora = () => abrirEleccion('Alma inestable', 'Elige una mejora: flechas o stick para moverte, J o Intro para elegir.',
+  sortear().map((m) => ({ ...describir(m), elegir: () => elegirMejora(m) })));
+function ponerObjeto(o: Objeto): void {
+  const quitado = equipar(equipo, o, vida, espiritu);
+  avisoEquipo.textContent = `${o.nombre}: ${o.texto}${quitado && quitado.id !== o.id ? ` Sustituye a ${quitado.nombre}.` : ''}`;
+  pintarEquipo();
+  pintarVida(false);
+}
+/** Equipo nuevo: con el hueco libre se pone sin preguntar; si no, se elige entre el nuevo y el que llevas. */
+function recogerObjeto(o: Objeto): void {
+  const actual = equipo[o.hueco];
+  if (!actual) return ponerObjeto(o);
+  abrirEleccion(`${HUECO[o.hueco]}: ${o.nombre}`, 'Equipa la nueva o quédate con lo que llevas (lo otro se pierde).', [
+    { nombre: `Equipar ${o.nombre}`, texto: o.texto, elegir: () => ponerObjeto(o) },
+    { nombre: `Seguir con ${actual.nombre}`, texto: actual.texto, elegir: () => { avisoEquipo.textContent = `Dejas ${o.nombre}.`; } },
+  ]);
 }
 function cerrarMejora(): void {
   panelMejora.hidden = true;
@@ -140,7 +186,6 @@ function elegirMejora(m: Opcion): void {
   aplicar(mejoras, vida, m);
   pintarVida(true);
   pintarMejoras();
-  cerrarMejora();
 }
 panelMejora.addEventListener('keydown', (e) => { // modal: Tab da la vuelta entre las tres opciones
   if (e.key !== 'Tab') return;
@@ -167,8 +212,8 @@ let chispas: { x: number; y: number; tipo: 'L' | 'P' | 'B'; vida: number }[] = [
 
 function soltarBotin(e: { x: number; y: number }): void {
   const b = soltar(e.x, e.y);
-  // shortcut: el equipo aún no cae; llega con la tarea 4 del plan RPG.
-  if (b && b.tipo !== 'equipo') botin.push(b);
+  if (b?.tipo === 'equipo') b.objeto = sortearObjeto(); // se decide al caer, para ver su hueco en el suelo
+  if (b) botin.push(b);
 }
 
 function actualizar(): void {
@@ -191,6 +236,7 @@ function actualizar(): void {
   }
   tick++;
   pasoVida(vida);
+  pasoEquipo(equipo);
   for (const p of acciones) {
     pedir(espiritu, p.accion, detector.registrar(p));
   }
@@ -208,7 +254,7 @@ function actualizar(): void {
           if (destella) destellan.add(e);
           else destellan.delete(e);
           const rumbo = { x: LIMITES.x0 + Math.random() * (LIMITES.x1 - LIMITES.x0), y: LIMITES.y0 + Math.random() * (LIMITES.y1 - LIMITES.y0) };
-          const r = recibirGolpe(e, golpe, espiritu, danoExtra(mejoras, golpe.combo !== null || golpe.accion === 'P'), infusion(mejoras), rumbo);
+          const r = recibirGolpe(e, golpe, espiritu, danoExtra(mejoras, golpe.combo !== null || golpe.accion === 'P'), infusion(mejoras) ?? estadoGuadana(equipo), rumbo);
           if (r === 'bloqueo') chispas.push({ x: e.x, y: e.y, tipo: 'B', vida: VIDA_CHISPA });
           if (r === 'muerte') soltarBotin(e);
           else alcanzados.push(e);
@@ -221,7 +267,7 @@ function actualizar(): void {
       alcanzados.forEach(() => {
         contador.golpe(ahora);
         anotar(vida, contador.golpes);
-        if (robar(mejoras, vida, contador.golpes)) pintarVida(true);
+        if (robar(mejoras, vida, contador.golpes, roboExtra(equipo))) pintarVida(true);
       });
       if (alcanzados.length) impacto(sensacion, golpe, alcanzados, maxTemblor());
       const tipo = golpe.combo || golpe.accion === 'P' ? 'P' : 'L';
@@ -230,9 +276,15 @@ function actualizar(): void {
     if (modo === 'combate') {
       const cuerpo = { x: espiritu.x - 6, y: espiritu.y - 14, w: 12, h: 16 };
       pasoCombate(combate, espiritu, cuerpo, golpe?.caja ?? null, danarEspiritu, Math.random, soltarBotin);
+      if (escarcha(equipo)) { // túnica de escarcha: los enemigos de al lado van lentos
+        for (const e of combate.enemigos) {
+          if (e.estado !== 'muerto' && Math.hypot(e.x - espiritu.x, e.y - espiritu.y) < ESCARCHA_RADIO) aplicarEstado(e.estados, 'lentitud');
+        }
+      }
       botin = pasoBotin(botin, cuerpo, (b) => {
         if (b.tipo === 'cura') { curar(vida); pintarVida(true); }
         if (b.tipo === 'inestable') abrirMejora();
+        if (b.objeto) recogerObjeto(b.objeto);
       });
     } else for (const m of munecos) actualizarMuneco(m);
   }
@@ -328,10 +380,16 @@ function dibujar(): void {
   for (const b of botin) {
     // shortcut: alma provisional hasta la tarea 6 (dibujos). En sus últimos 3 s late suave, sin destellar.
     ctx.globalAlpha = b.vida > 180 ? 1 : 0.55 + 0.45 * Math.cos(b.vida / 6);
-    ctx.fillStyle = b.tipo === 'inestable' ? '#ff3fb8' : '#9fe6f0';
+    ctx.fillStyle = b.tipo === 'inestable' ? '#ff3fb8' : b.tipo === 'equipo' ? '#e0c050' : '#9fe6f0';
     ctx.fillRect(Math.round(b.x) - 3, Math.round(b.y) - 3, 6, 6);
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(Math.round(b.x) - 1, Math.round(b.y) - 2, 2, 2);
+    if (b.objeto) { // inicial del hueco: G guadaña, A amuleto, T túnica
+      ctx.fillStyle = '#e0c050';
+      ctx.font = 'bold 8px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(HUECO[b.objeto.hueco][0], Math.round(b.x), Math.round(b.y) - 5);
+    }
     ctx.globalAlpha = 1;
   }
   for (const p of combate.proyectiles) {

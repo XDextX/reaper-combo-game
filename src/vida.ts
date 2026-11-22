@@ -8,10 +8,10 @@ export function crearVida() {
 export type Vida = ReturnType<typeof crearVida>;
 
 /** Un ataque alcanza al espíritu; devuelve si le hizo daño (no lo hace esquivando ni recién herido). */
-export function herir(v: Vida, esquivando: boolean): boolean {
+export function herir(v: Vida, esquivando: boolean, extra = 0): boolean {
   if (v.vida === 0 || v.invulnerable > 0 || esquivando) return false;
   v.vida--;
-  v.invulnerable = INVULNERABLE;
+  v.invulnerable = INVULNERABLE + extra; // extra: amuleto del reloj
   return true;
 }
 

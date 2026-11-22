@@ -35,6 +35,7 @@ export function crearEspiritu(x: number, y: number) {
     accion: null as Accion | null,
     combo: null as Combo | null,
     paso: 0,
+    esquivaExtra: 0, // pasos de más que dura la esquiva (túnica de sombra)
     // Pulsaciones que esperan a que acabe la acción actual; no se pisan, así un combo no se pierde.
     siguientes: [] as { accion: Accion; combo: Combo | null }[],
   };
@@ -86,7 +87,7 @@ export function actualizar(e: Espiritu, mover: Vector): Golpe | null {
     } else if (accion !== 'E' && e.paso === ACTIVO[accion]) {
       golpe = golpeDe(e, accion);
     }
-    if (e.paso >= DURACION[accion]) {
+    if (e.paso >= DURACION[accion] + (accion === 'E' ? e.esquivaExtra : 0)) {
       e.estado = 'quieto';
       e.accion = null;
       e.combo = null;

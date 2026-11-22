@@ -123,9 +123,10 @@ Aprobado por el dueño el 2026-11-22. Solo en el modo Combate. Todo se pierde al
 - **Ceguera:** durante 3 s pierde de vista al espíritu y anda sin rumbo; si ataca, apunta mal.
 - **Marca** (sombra): el siguiente golpe que recibe hace el doble de daño.
 
-**Equipo.** 4 huecos, un objeto por hueco; recoger otro del mismo tipo sustituye al que se llevaba. El HUD dice qué se lleva y qué hace.
+**Equipo.** 4 huecos, un objeto por hueco; si se recoge otro de un hueco ocupado, el juego se pausa y se elige entre equipar el nuevo o seguir con el que se lleva; el descartado se pierde. Con el hueco libre se equipa sin preguntar. El HUD dice qué se lleva y qué hace.
 
-- **Guadaña:** da un elemento a los golpes, una por estado (por ejemplo, la guadaña ígnea aplica quemadura y la guadaña del cuervo, ceguera).
+- **Guadaña:** da un elemento a los golpes, una por estado (por ejemplo, la guadaña ígnea aplica quemadura y la guadaña del cuervo, ceguera): 1 de cada 4 golpes aplica su estado. Si la infusión ya aplicó uno en ese golpe, manda la infusión.
+- El objeto se decide al caer: uno al azar de los 13 (7 guadañas, 3 amuletos y 3 túnicas), y en el suelo se ve la inicial de su hueco (G, A o T). Los lectores de pantalla oyen cuál es, qué hace y a cuál sustituye.
 - **Amuleto:** un efecto pasivo, por ejemplo +1 corazón, robo de vida o más tiempo sin recibir daño tras un golpe.
 - **Túnica:** defensa, por ejemplo esquiva más larga, un golpe que no quita vida cada 20 s, o enemigos más lentos alrededor.
 - **Asistente:** un pequeño espíritu que sigue al jugador y aplica buffs o debuffs según su tipo: el **Farol** da +1 de daño mientras hay enemigos cerca, el **Cuervo** ciega cada 4 s al enemigo más cercano y la **Polilla** ralentiza los proyectiles que pasan cerca.
