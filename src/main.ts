@@ -14,7 +14,7 @@ import { crearEquipo, equipar, escarcha, estadoGuadana, invulnerableExtra, pasoE
 import { aplicarEstado } from './estados';
 import { pasoBotin, soltar, type Botin } from './botin';
 import { aplicar, crearMejoras, danoExtra, describir, infusion, robar, sortear, type Opcion } from './mejoras';
-import { activos, type Estado } from './estados';
+import { activos } from './estados';
 
 const canvas = document.querySelector<HTMLCanvasElement>('#juego')!;
 const ctx = canvas.getContext('2d')!;
@@ -311,10 +311,6 @@ function fotogramaEspiritu(e: Espiritu): string {
 }
 
 const destellan = new WeakSet<Enemigo>(); // enemigos cuyo último golpe recibido destella
-const COLOR_ESTADO: Record<Estado, string> = {
-  quemadura: '#ff7a1a', veneno: '#6fd04f', sangrado: '#c0182a', lentitud: '#7fd8ff',
-  aturdimiento: '#ffe14f', ceguera: '#8a8aa0', marca: '#b04fff',
-};
 /** Fotograma del enemigo según su estado y hacia dónde mira (los de lado no llevan dirección en el nombre). */
 function fotogramaEnemigo(e: Enemigo): string {
   const f = HOJAS.enemigos.fotogramas;
@@ -334,9 +330,8 @@ function pintarEnemigo(e: Enemigo): void {
   const x = Math.round(e.x - ANCHO_ENEMIGO / 2);
   const y = Math.round(e.y - ALTO_ENEMIGO / 2);
   for (let i = 0; i < e.vida; i++) ctx.fillRect(x + i * 3, y - 6, 2, 2);
-  activos(e.estados).forEach((estado, i) => { // shortcut: iconos provisionales hasta la tarea 6 (dibujos)
-    ctx.fillStyle = COLOR_ESTADO[estado];
-    ctx.fillRect(x + i * 4, y - 11, 3, 3);
+  activos(e.estados).forEach((estado, i) => { // iconos de 5×5 centrados en su fotograma de 32
+    pintar(ctx, HOJAS.rpg, `estado-${estado}`, x + i * 6 - 14, y - 13 - 14);
   });
 }
 
@@ -382,24 +377,17 @@ function dibujar(): void {
   ];
   figuras.sort((a, b) => a.y - b.y).forEach((f) => f.pinta());
 
+  const anima = Math.floor(tick / 15) % 2 + 1; // dos fotogramas de los dibujos animados del RPG
   for (const b of botin) {
-    // shortcut: alma provisional hasta la tarea 6 (dibujos). En sus últimos 3 s late suave, sin destellar.
+    // En sus últimos 3 s late suave, sin destellar.
     ctx.globalAlpha = b.vida > 180 ? 1 : 0.55 + 0.45 * Math.cos(b.vida / 6);
-    ctx.fillStyle = b.tipo === 'inestable' ? '#ff3fb8' : b.tipo === 'equipo' ? '#e0c050' : '#9fe6f0';
-    ctx.fillRect(Math.round(b.x) - 3, Math.round(b.y) - 3, 6, 6);
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(Math.round(b.x) - 1, Math.round(b.y) - 2, 2, 2);
-    if (b.objeto) { // inicial del hueco: G guadaña, A amuleto, T túnica, E espíritu asistente
-      ctx.fillStyle = '#e0c050';
-      ctx.font = 'bold 8px monospace';
-      ctx.textAlign = 'center';
-      ctx.fillText(HUECO[b.objeto.hueco][0], Math.round(b.x), Math.round(b.y) - 5);
-    }
+    const f = b.objeto ? `equipo-${b.objeto.hueco}` : b.tipo === 'inestable' ? `inestable-${anima}` : 'cura-1';
+    pintar(ctx, HOJAS.rpg, f, Math.round(b.x) - 16, Math.round(b.y) - 16);
     ctx.globalAlpha = 1;
   }
-  if (equipo.asistente && modo === 'combate') { // shortcut: asistente provisional (un punto que flota detrás) hasta la tarea 6
-    ctx.fillStyle = { farol: '#ffb347', 'cuervo-asistente': '#8a7bd8', polilla: '#e8e0c0' }[equipo.asistente.id] ?? '#fff';
-    ctx.fillRect(Math.round(espiritu.x - espiritu.mira.x * 12) - 2, Math.round(espiritu.y - 14 + Math.sin(tick / 20) * 2) - 2, 4, 4);
+  if (equipo.asistente && modo === 'combate') { // flota detrás del espíritu
+    const f = `${equipo.asistente.id.replace('-asistente', '')}-${anima}`;
+    pintar(ctx, HOJAS.rpg, f, Math.round(espiritu.x - espiritu.mira.x * 12) - 16, Math.round(espiritu.y - 14 + Math.sin(tick / 20) * 2) - 16);
   }
   for (const p of combate.proyectiles) {
     pintar(ctx, HOJAS.enemigos, 'orbe-1', Math.round(p.x) - 16, Math.round(p.y) - 16);

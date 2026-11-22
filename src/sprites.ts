@@ -7,6 +7,8 @@ import espirituKit from '../assets/espiritu.kit.json';
 import espirituPng from '../assets/espiritu.png';
 import munecoKit from '../assets/muneco.kit.json';
 import munecoPng from '../assets/muneco.png';
+import rpgKit from '../assets/rpg.kit.json';
+import rpgPng from '../assets/rpg.png';
 import sueloKit from '../assets/suelo.kit.json';
 import sueloPng from '../assets/suelo.png';
 
@@ -26,6 +28,7 @@ export const HOJAS = {
   chispas: cargar(chispasPng, chispasKit, 'chispas'),
   suelo: cargar(sueloPng, sueloKit, 'suelo'),
   enemigos: cargar(enemigosPng, enemigosKit, 'enemigos'),
+  rpg: cargar(rpgPng, rpgKit, 'rpg'),
 };
 
 /** Dibuja un fotograma con su esquina en (x, y) respecto al origen actual; `espejo` lo voltea en horizontal. */
