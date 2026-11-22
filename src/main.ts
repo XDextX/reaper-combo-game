@@ -1,7 +1,7 @@
 import { arrancar } from './bucle';
 import { COMBOS, crearContador, crearDetector } from './combos';
 import { crearEntrada } from './entrada';
-import { DURACION, actualizar as moverEspiritu, crearEspiritu, pedir, type Espiritu } from './espiritu';
+import { DURACION, LIMITES, actualizar as moverEspiritu, crearEspiritu, pedir, type Espiritu } from './espiritu';
 import { DESTELLO, actualizarMuneco, cajaMuneco, crearLimiteDestellos, crearMuneco, recibir, solapan } from './munecos';
 import { crearInterfaz } from './interfaz';
 import { ANCHO, ALTO, encuadre, seguirPantalla } from './pantalla';
@@ -11,7 +11,8 @@ import { HOJAS, pintar } from './sprites';
 import { ALTO_ENEMIGO, ANCHO_ENEMIGO, MUERTE, RECUPERA, cajaEnemigo, crearCombate, pasoCombate, recibirGolpe, type Enemigo } from './enemigos';
 import { anotar, crearVida, curar, herir, pasoVida } from './vida';
 import { pasoBotin, soltar, type Botin } from './botin';
-import { MEJORAS, aplicar, crearMejoras, danoExtra, robar, sortear, type Mejora } from './mejoras';
+import { aplicar, crearMejoras, danoExtra, describir, infusion, robar, sortear, type Opcion } from './mejoras';
+import { activos, type Estado } from './estados';
 
 const canvas = document.querySelector<HTMLCanvasElement>('#juego')!;
 const ctx = canvas.getContext('2d')!;
@@ -110,16 +111,18 @@ let eligiendo = 0; // 0: cerrado; si no, pasos desde que se abrió
 let moverAntes = 0;
 const botonesMejora = () => [...opciones.children] as HTMLButtonElement[];
 function pintarMejoras(): void {
-  mejorasHud.textContent = (Object.keys(MEJORAS) as Mejora[]).filter((m) => mejoras[m] > 0)
-    .map((m) => `${MEJORAS[m].nombre}${mejoras[m] > 1 ? ` ×${mejoras[m]}` : ''}`).join(' · ');
+  const llevadas: Opcion[] = (['vida', 'dano', 'robo'] as const).map((mejora) => ({ mejora }));
+  if (mejoras.infusionEstado) llevadas.push({ mejora: 'infusion', estado: mejoras.infusionEstado });
+  mejorasHud.textContent = llevadas.filter(({ mejora }) => mejoras[mejora] > 0)
+    .map((o) => `${describir(o).nombre}${mejoras[o.mejora] > 1 ? ` ×${mejoras[o.mejora]}` : ''}`).join(' · ');
 }
 function abrirMejora(): void {
   opciones.replaceChildren(...sortear().map((m) => {
     const b = document.createElement('button');
     b.type = 'button';
     const nombre = document.createElement('strong');
-    nombre.textContent = MEJORAS[m].nombre;
-    b.append(nombre, MEJORAS[m].texto);
+    nombre.textContent = describir(m).nombre;
+    b.append(nombre, describir(m).texto);
     b.addEventListener('click', () => elegirMejora(m));
     return b;
   }));
@@ -133,7 +136,7 @@ function cerrarMejora(): void {
   eligiendo = 0;
   (document.activeElement as HTMLElement | null)?.blur?.(); // el foco no se queda en un botón oculto
 }
-function elegirMejora(m: Mejora): void {
+function elegirMejora(m: Opcion): void {
   aplicar(mejoras, vida, m);
   pintarVida(true);
   pintarMejoras();
@@ -161,6 +164,12 @@ let tick = 0;
 // Chispas de impacto: un sprite que se reproduce una vez en cada punto alcanzado.
 const VIDA_CHISPA = 12;
 let chispas: { x: number; y: number; tipo: 'L' | 'P' | 'B'; vida: number }[] = []; // B: bloqueo del escudado
+
+function soltarBotin(e: { x: number; y: number }): void {
+  const b = soltar(e.x, e.y);
+  // shortcut: el equipo aún no cae; llega con la tarea 4 del plan RPG.
+  if (b && b.tipo !== 'equipo') botin.push(b);
+}
 
 function actualizar(): void {
   const ahora = performance.now();
@@ -198,13 +207,10 @@ function actualizar(): void {
         for (const e of tocados) {
           if (destella) destellan.add(e);
           else destellan.delete(e);
-          const r = recibirGolpe(e, golpe, espiritu, danoExtra(mejoras, golpe.combo !== null || golpe.accion === 'P'));
+          const rumbo = { x: LIMITES.x0 + Math.random() * (LIMITES.x1 - LIMITES.x0), y: LIMITES.y0 + Math.random() * (LIMITES.y1 - LIMITES.y0) };
+          const r = recibirGolpe(e, golpe, espiritu, danoExtra(mejoras, golpe.combo !== null || golpe.accion === 'P'), infusion(mejoras), rumbo);
           if (r === 'bloqueo') chispas.push({ x: e.x, y: e.y, tipo: 'B', vida: VIDA_CHISPA });
-          if (r === 'muerte') {
-            const b = soltar(e.x, e.y);
-            // shortcut: el equipo aún no cae; llega con la tarea 4 del plan RPG.
-            if (b && b.tipo !== 'equipo') botin.push(b);
-          }
+          if (r === 'muerte') soltarBotin(e);
           else alcanzados.push(e);
         }
       } else {
@@ -223,7 +229,7 @@ function actualizar(): void {
     }
     if (modo === 'combate') {
       const cuerpo = { x: espiritu.x - 6, y: espiritu.y - 14, w: 12, h: 16 };
-      pasoCombate(combate, espiritu, cuerpo, golpe?.caja ?? null, danarEspiritu);
+      pasoCombate(combate, espiritu, cuerpo, golpe?.caja ?? null, danarEspiritu, Math.random, soltarBotin);
       botin = pasoBotin(botin, cuerpo, (b) => {
         if (b.tipo === 'cura') { curar(vida); pintarVida(true); }
         if (b.tipo === 'inestable') abrirMejora();
@@ -248,6 +254,10 @@ function fotogramaEspiritu(e: Espiritu): string {
 }
 
 const destellan = new WeakSet<Enemigo>(); // enemigos cuyo último golpe recibido destella
+const COLOR_ESTADO: Record<Estado, string> = {
+  quemadura: '#ff7a1a', veneno: '#6fd04f', sangrado: '#c0182a', lentitud: '#7fd8ff',
+  aturdimiento: '#ffe14f', ceguera: '#8a8aa0', marca: '#b04fff',
+};
 /** Fotograma del enemigo según su estado y hacia dónde mira (los de lado no llevan dirección en el nombre). */
 function fotogramaEnemigo(e: Enemigo): string {
   const f = HOJAS.enemigos.fotogramas;
@@ -265,7 +275,12 @@ function pintarEnemigo(e: Enemigo): void {
   if (e.estado === 'muerto') return;
   ctx.fillStyle = '#ff7fd4'; // vida que le queda
   const x = Math.round(e.x - ANCHO_ENEMIGO / 2);
-  for (let i = 0; i < e.vida; i++) ctx.fillRect(x + i * 3, Math.round(e.y - ALTO_ENEMIGO / 2) - 6, 2, 2);
+  const y = Math.round(e.y - ALTO_ENEMIGO / 2);
+  for (let i = 0; i < e.vida; i++) ctx.fillRect(x + i * 3, y - 6, 2, 2);
+  activos(e.estados).forEach((estado, i) => { // shortcut: iconos provisionales hasta la tarea 6 (dibujos)
+    ctx.fillStyle = COLOR_ESTADO[estado];
+    ctx.fillRect(x + i * 4, y - 11, 3, 3);
+  });
 }
 
 function dibujar(): void {

@@ -50,9 +50,9 @@ Aprobado por el dueño el 2026-11-20.
 
 **Enemigos.** Siempre hay 3 en la arena. Cuando uno muere, aparece otro por un borde al cabo de 1 s. El tipo se elige al azar entre tres:
 
-- **Segador menor** (cuerpo a cuerpo): 3 de vida. Se acerca y, antes de golpear, se queda quieto y brilla durante 0,5 s, lo que da tiempo a esquivar.
-- **Lanzador** (a distancia): 2 de vida. Se mantiene a unos 120 px y dispara un proyectil lento cada 2 s, con un aviso previo. El proyectil se esquiva o se corta con un golpe.
-- **Escudado**: 4 de vida. Bloquea los golpes ligeros que le llegan de frente, con una chispa gris y sin daño. P, los combos y los golpes por la espalda sí le hacen daño.
+- **Segador menor** (cuerpo a cuerpo): 6 de vida. Se acerca y, antes de golpear, se queda quieto y brilla durante 0,5 s, lo que da tiempo a esquivar.
+- **Lanzador** (a distancia): 4 de vida. Se mantiene a unos 120 px y dispara un proyectil lento cada 2 s, con un aviso previo. El proyectil se esquiva o se corta con un golpe.
+- **Escudado**: 8 de vida. Bloquea los golpes ligeros que le llegan de frente, con una chispa gris y sin daño. P, los combos y los golpes por la espalda sí le hacen daño.
 
 **Daño de los golpes.** L quita 1, P quita 2 y el remate de un combo quita 3. Cada enemigo tiene sus propios fotogramas de quieto, andar, aviso, ataque, golpeado y muerte. Los dibujos se hacen con Lienzo en 4 direcciones, igual que el espíritu, y el dueño los aprueba antes de usarlos.
 
@@ -111,11 +111,11 @@ Aprobado por el dueño el 2026-11-22. Solo en el modo Combate. Todo se pierde al
 - **Más vida:** +1 corazón máximo y cura uno.
 - **Más daño:** +1 al golpe pesado (P) y a los remates de combo.
 - **Robo de vida:** cada 10 golpes de combo seguidos se recupera 1 corazón.
-- **Infusión:** los golpes aplican un estado al azar de la lista de abajo.
+- **Infusión:** es de un estado concreto (fuego, veneno, sangre, hielo, rayo, cuervo o sombra) y solo se lleva una. Cada golpe tiene un 35 % de aplicar su estado. Elegir la misma infusión otra vez sube ese 35 % a 70 % y luego a 100 %; elegir otra distinta sustituye a la anterior y vuelve al 35 %.
 
 **Estados alterados** (sobre los enemigos; cada uno con su icono encima del enemigo):
 
-- **Quemadura** (fuego): 1 de daño por segundo durante 3 s.
+- **Quemadura** (fuego): 1 de daño cada 0,5 s durante 2 s, y salta a los enemigos vivos que estén a menos de 30 px. No se acumula.
 - **Veneno:** 1 de daño cada 2 s durante 6 s; se acumula hasta 3 veces.
 - **Sangrado:** 1 de daño cada vez que el enemigo recorre 40 px; dura 5 s.
 - **Lentitud** (hielo): se mueve y avisa a la mitad de velocidad durante 3 s.
