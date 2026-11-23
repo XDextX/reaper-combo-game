@@ -3,9 +3,10 @@ import { COMBOS } from './combos';
 import {
   LEJOS, aparecer,
   AVISO, DISTANCIA_LANZADOR, VIDA, EN_ARENA, ESPERA_REAPARECER, MUERTE, RECARGA,
-  actualizarEnemigo, crearCombate, crearEnemigo, pasoCombate, recibirGolpe, type Enemigo,
+  actualizarEnemigo, crearCombate, crearEnemigo, golpearEnemigos, pasoCombate, propagarQuemadura, recibirGolpe, type Enemigo,
 } from './enemigos';
 import type { Golpe } from './espiritu';
+import { aplicarEstado } from './estados';
 
 const caja = { x: 0, y: 0, w: 1, h: 1 };
 const golpe = (accion: 'L' | 'P', combo = false): Golpe => ({ accion, caja, empuje: 0, combo: combo ? COMBOS[0] : null });
@@ -162,5 +163,38 @@ describe('quemadura que se propaga', () => {
     pasoCombate(c, { x: 400, y: 250 }, { x: 0, y: 0, w: 0, h: 0 }, null, () => {});
     expect(b.estados.quemadura).toBeGreaterThan(0);
     expect(lejos.estados.quemadura).toBe(0);
+  });
+  it('la quemadura contagiada no se contagia de vuelta', () => {
+    const a = crearEnemigo('segador', 100, 100);
+    const b = crearEnemigo('segador', 110, 100);
+    aplicarEstado(a.estados, 'quemadura');
+    propagarQuemadura([a, b]);
+    expect(b.estados.quemadura).toBeGreaterThan(0);
+    a.estados.quemadura = 0; // se le apagó a A; B sigue ardiendo
+    propagarQuemadura([a, b]);
+    expect(a.estados.quemadura).toBe(0);
+  });
+});
+
+describe('golpes y lentitud', () => {
+  const sinEfecto = () => ({ extra: 0, estado: null });
+  it('el golpe que mata alcanza; el bloqueado no', () => {
+    const muere = crearEnemigo('lanzador', 110, 100);
+    muere.vida = 1;
+    const escudo = crearEnemigo('escudado', 90, 100); // mira a la izquierda: el espíritu en 50 le da de frente
+    const r = golpearEnemigos([muere, escudo], golpe('L'), { x: 50, y: 100 }, sinEfecto);
+    expect(r.alcanzados).toEqual([muere]);
+    expect(r.muertos).toEqual([muere]);
+    expect(r.bloqueados).toEqual([escudo]);
+  });
+  it('con la lentitud renovada cada paso (túnica de escarcha) el aviso dura el doble', () => {
+    const e = crearEnemigo('segador', 100, 100);
+    let pasosHastaAtacar = 0;
+    for (let i = 0; i < 4 * AVISO && pasosHastaAtacar === 0; i++) {
+      e.estados.lentitud = 10;
+      if (actualizarEnemigo(e, { x: 105, y: 100 }).caja) pasosHastaAtacar = i;
+    }
+    expect(pasosHastaAtacar).toBeGreaterThanOrEqual(2 * AVISO - 2);
+    expect(pasosHastaAtacar).toBeLessThanOrEqual(2 * AVISO + 2);
   });
 });

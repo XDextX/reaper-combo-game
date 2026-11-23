@@ -38,7 +38,7 @@ Hay dos capas que funcionan a la vez.
 
 Los nombres y los tiempos son valores iniciales; se ajustan jugando y viven en un solo archivo de datos.
 
-**2. Contador y multiplicador.** Cada golpe que conecta suma 1. El multiplicador sube un nivel cada 10 golpes, hasta x4. El contador se rompe tras 2 s sin conectar un golpe. Como en la v1 los muñecos no atacan, la regla de que recibir daño rompe el contador queda escrita pero sin uso.
+**2. Contador y multiplicador.** Cada golpe que conecta suma 1, también el que mata; el ligero que para el escudo del escudado no conecta y no suma: el espíritu solo retrocede 3 px, como un rechazo. El multiplicador sube un nivel cada 10 golpes, hasta x4. El contador se rompe tras 2 s sin conectar un golpe. Como en la v1 los muñecos no atacan, la regla de que recibir daño rompe el contador queda escrita pero sin uso.
 
 ## Combate
 
@@ -115,7 +115,7 @@ Aprobado por el dueño el 2026-11-22. Solo en el modo Combate. Todo se pierde al
 
 **Estados alterados** (sobre los enemigos; cada uno con su icono encima del enemigo):
 
-- **Quemadura** (fuego): 1 de daño cada 0,5 s durante 2 s, y salta a los enemigos vivos que estén a menos de 30 px. No se acumula.
+- **Quemadura** (fuego): 1 de daño cada 0,5 s durante 2 s, y salta a los enemigos vivos que estén a menos de 30 px; la quemadura contagiada ya no salta a otros, así no se reavivan sin fin. La contagiada se ve con el icono más tenue. No se acumula.
 - **Veneno:** 1 de daño cada 2 s durante 6 s; se acumula hasta 3 veces.
 - **Sangrado:** 1 de daño cada vez que el enemigo recorre 40 px; dura 5 s.
 - **Lentitud** (hielo): se mueve y avisa a la mitad de velocidad durante 3 s.

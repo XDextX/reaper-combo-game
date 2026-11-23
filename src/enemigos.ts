@@ -29,6 +29,7 @@ export function crearEnemigo(tipo: Tipo, x: number, y: number) {
   return {
     tipo, x, y, vida: VIDA[tipo], estado: 'andar' as EstadoEnemigo, t: 0,
     recarga: RECARGA, mira: { x: -1, y: 0 } as Vector, vx: 0, vy: 0, estados: crearEstados(),
+    anima: 0, // pasos de animación: lento avanza a la mitad, para que no patine
   };
 }
 export type Enemigo = ReturnType<typeof crearEnemigo>;
@@ -66,6 +67,18 @@ export function recibirGolpe(e: Enemigo, g: Golpe, desde: Vector, extra = 0, est
   return e.vida === 0 ? 'muerte' : 'dano';
 }
 
+/** Golpea a los tocados; `efecto` da el daño extra y el estado de cada uno. El golpe bloqueado no alcanza; el que mata, sí. */
+export function golpearEnemigos(tocados: Enemigo[], g: Golpe, desde: Vector, efecto: () => { extra: number; estado: Estado | null; rumbo?: Vector }) {
+  const r = { alcanzados: [] as Enemigo[], bloqueados: [] as Enemigo[], muertos: [] as Enemigo[] };
+  for (const e of tocados) {
+    const { extra, estado, rumbo } = efecto();
+    const res = recibirGolpe(e, g, desde, extra, estado, rumbo);
+    (res === 'bloqueo' ? r.bloqueados : r.alcanzados).push(e);
+    if (res === 'muerte') r.muertos.push(e);
+  }
+  return r;
+}
+
 export type Ataque = { caja?: Caja; proyectil?: Proyectil; murio?: boolean };
 
 /** Un paso del enemigo hacia (o lejos de) el espíritu. Devuelve el ataque que suelta en este paso, si hay. */
@@ -79,7 +92,8 @@ export function actualizarEnemigo(e: Enemigo, objetivo: Vector): Ataque {
   const s = e.estados;
   if (s.ceguera > 0) objetivo = s.rumbo; // cegado anda hacia un punto al azar y, si ataca, apunta mal
   const lento = s.lentitud > 0;
-  const pasoLento = lento && s.lentitud % 2 === 1; // lento: sus tiempos corren a la mitad
+  const pasoLento = lento && s.par && e.estado !== 'muerto'; // la muerte va a velocidad normal
+  if (!pasoLento && s.aturdido === 0) e.anima++; // aturdido no anda en el sitio // lento: sus tiempos corren a la mitad
   const dx = objetivo.x - e.x;
   const dy = objetivo.y - e.y;
   const dist = Math.hypot(dx, dy) || 1;
@@ -137,10 +151,13 @@ export function actualizarEnemigo(e: Enemigo, objetivo: Vector): Ataque {
 
 /** La quemadura salta a los enemigos vivos que están a menos de 30 px de uno que arde. */
 export function propagarQuemadura(enemigos: Enemigo[]): void {
-  const ardiendo = enemigos.filter((e) => e.estado !== 'muerto' && e.estados.quemadura > 0);
+  const ardiendo = enemigos.filter((e) => e.estado !== 'muerto' && e.estados.quemadura > 0 && e.estados.contagia);
   for (const e of enemigos) {
     if (e.estado === 'muerto' || e.estados.quemadura > 0) continue;
-    if (ardiendo.some((f) => Math.hypot(f.x - e.x, f.y - e.y) < CONTAGIO)) aplicarEstado(e.estados, 'quemadura');
+    if (ardiendo.some((f) => Math.hypot(f.x - e.x, f.y - e.y) < CONTAGIO)) {
+      aplicarEstado(e.estados, 'quemadura');
+      e.estados.contagia = false;
+    }
   }
 }
 const CONTAGIO = 30;

@@ -18,6 +18,8 @@ export function crearEstados() {
   return {
     quemadura: 0, veneno: [] as number[], sangrado: 0, recorrido: 0, lentitud: 0,
     aturdido: 0, reposoAturdir: 0, ceguera: 0, rumbo: { x: 0, y: 0 } as Vector, marca: false,
+    contagia: false, // la quemadura de un golpe se contagia; la contagiada no, para que no se reaviven sin fin
+    par: false, // alterna cada paso: un enemigo lento solo avanza sus tiempos en uno de cada dos
   };
 }
 export type Estados = ReturnType<typeof crearEstados>;
@@ -25,7 +27,7 @@ export type Estados = ReturnType<typeof crearEstados>;
 /** Aplica un estado. `rumbo` es hacia dónde anda un enemigo cegado. */
 export function aplicarEstado(s: Estados, estado: Estado, rumbo: Vector = { x: 0, y: 0 }): void {
   switch (estado) {
-    case 'quemadura': s.quemadura = QUEMADURA; break;
+    case 'quemadura': s.quemadura = QUEMADURA; s.contagia = true; break;
     case 'veneno':
       if (s.veneno.length < MAX_VENENO) s.veneno.push(VENENO);
       else s.veneno[s.veneno.indexOf(Math.min(...s.veneno))] = VENENO; // con 3 dosis, renueva la más vieja
@@ -45,6 +47,7 @@ export function aplicarEstado(s: Estados, estado: Estado, rumbo: Vector = { x: 0
 /** Un paso: `movido` son los px que recorrió el enemigo. Devuelve el daño de este paso. */
 export function pasoEstados(s: Estados, movido: number): number {
   let dano = 0;
+  s.par = !s.par;
   if (s.quemadura > 0 && --s.quemadura % 30 === 0) dano++;
   s.veneno = s.veneno.map((t) => t - 1).filter((t) => {
     if (t % 120 === 0) dano++;

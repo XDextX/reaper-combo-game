@@ -8,7 +8,7 @@ import { ANCHO, ALTO, encuadre, seguirPantalla } from './pantalla';
 import { avanzar, crearSensacion, desplazamiento, impacto } from './sensacion';
 import { direccion, fotogramaEnBucle, fotogramaPorAvance } from './animacion';
 import { HOJAS, pintar } from './sprites';
-import { ALTO_ENEMIGO, ANCHO_ENEMIGO, MUERTE, RECUPERA, cajaEnemigo, crearCombate, pasoCombate, recibirGolpe, type Enemigo } from './enemigos';
+import { ALTO_ENEMIGO, ANCHO_ENEMIGO, MUERTE, RECUPERA, cajaEnemigo, crearCombate, golpearEnemigos, pasoCombate, type Enemigo } from './enemigos';
 import { INVULNERABLE, anotar, crearVida, curar, herir, pasoVida } from './vida';
 import { crearEquipo, equipar, escarcha, estadoGuadana, invulnerableExtra, pasoEquipo, roboExtra, sortearObjeto, velo, ESCARCHA_RADIO, HUECO, blancoCuervo, danoFarol, frenarProyectiles, type Objeto } from './equipo';
 import { aplicarEstado } from './estados';
@@ -264,18 +264,25 @@ function actualizar(): void {
       let alcanzados: { x: number; y: number }[];
       if (modo === 'combate') {
         const tocados = combate.enemigos.filter((e) => e.estado !== 'muerto' && solapan(golpe.caja, cajaEnemigo(e)));
-        alcanzados = [];
-        // El blanco de «golpeado» es un destello: pasa por el mismo límite de 3 por segundo que los muñecos.
-        const destella = tocados.length > 0 && destellos.pedir();
-        for (const e of tocados) {
+        const r = golpearEnemigos(tocados, golpe, espiritu, () => ({
+          extra: danoExtra(mejoras, golpe.combo !== null || golpe.accion === 'P') + danoFarol(equipo, espiritu, vivos()),
+          estado: infusion(mejoras) ?? estadoGuadana(equipo),
+          rumbo: { x: LIMITES.x0 + Math.random() * (LIMITES.x1 - LIMITES.x0), y: LIMITES.y0 + Math.random() * (LIMITES.y1 - LIMITES.y0) },
+        }));
+        // El blanco de «golpeado» es un destello: pasa por el mismo límite de 3 por segundo que los muñecos;
+        // si todos bloquean no se gasta.
+        const destella = r.alcanzados.length > 0 && destellos.pedir();
+        for (const e of r.alcanzados) {
           if (destella) destellan.add(e);
           else destellan.delete(e);
-          const rumbo = { x: LIMITES.x0 + Math.random() * (LIMITES.x1 - LIMITES.x0), y: LIMITES.y0 + Math.random() * (LIMITES.y1 - LIMITES.y0) };
-          const r = recibirGolpe(e, golpe, espiritu, danoExtra(mejoras, golpe.combo !== null || golpe.accion === 'P') + danoFarol(equipo, espiritu, vivos()), infusion(mejoras) ?? estadoGuadana(equipo), rumbo);
-          if (r === 'bloqueo') chispas.push({ x: e.x, y: e.y, tipo: 'B', vida: VIDA_CHISPA });
-          if (r === 'muerte') soltarBotin(e);
-          else alcanzados.push(e);
         }
+        for (const e of r.bloqueados) chispas.push({ x: e.x, y: e.y, tipo: 'B', vida: VIDA_CHISPA });
+        if (r.bloqueados.length) { // el escudo rechaza: el espíritu retrocede 3 px, sin premio
+          espiritu.x = Math.min(LIMITES.x1, Math.max(LIMITES.x0, espiritu.x - espiritu.mira.x * 3));
+          espiritu.y = Math.min(LIMITES.y1, Math.max(LIMITES.y0, espiritu.y - espiritu.mira.y * 3));
+        }
+        r.muertos.forEach(soltarBotin);
+        alcanzados = r.alcanzados;
       } else {
         const tocados = munecos.filter((m) => solapan(golpe.caja, cajaMuneco(m)));
         const destella = tocados.length > 0 && destellos.pedir();
@@ -337,7 +344,7 @@ function fotogramaEnemigo(e: Enemigo): string {
   if (e.estado === 'golpeado') return destellan.has(e) ? `${p}golpeado-1` : `${p}quieto-1`;
   if (e.estado === 'aviso') return `${p}aviso-1`;
   if (e.estado === 'recupera') return e.t > RECUPERA - 12 ? fotogramaPorAvance(f, `${p}ataque`, (RECUPERA - e.t) / 12) : `${p}quieto-1`;
-  return fotogramaEnBucle(f, `${p}andar`, tick, 10);
+  return fotogramaEnBucle(f, `${p}andar`, e.anima, 10);
 }
 function pintarEnemigo(e: Enemigo): void {
   const espejo = direccion(e.mira) === 'lado' && e.mira.x < 0;
@@ -348,7 +355,9 @@ function pintarEnemigo(e: Enemigo): void {
   const y = Math.round(e.y - ALTO_ENEMIGO / 2);
   for (let i = 0; i < e.vida; i++) ctx.fillRect(x + i * 3, y - 6, 2, 2);
   activos(e.estados).forEach((estado, i) => { // iconos de 5×5 centrados en su fotograma de 32
+    if (estado === 'quemadura' && !e.estados.contagia) ctx.globalAlpha = 0.5; // la contagiada, más tenue
     pintar(ctx, HOJAS.rpg, `estado-${estado}`, x + i * 6 - 14, y - 13 - 14);
+    ctx.globalAlpha = 1;
   });
 }
 
