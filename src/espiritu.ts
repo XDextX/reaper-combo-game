@@ -49,6 +49,8 @@ const ocupado = (e: Espiritu) => e.estado === 'atacando' || e.estado === 'esquiv
 
 function empezar(e: Espiritu, accion: Accion, combo: Combo | null): void {
   e.estado = accion === 'E' ? 'esquivando' : 'atacando';
+  if (accion === 'E' && e.miraAntes) e.mira = e.miraAntes; // la esquiva va hacia donde ibas, no hacia lo golpeado
+  if (accion === 'E') e.miraAntes = null;
   e.accion = accion;
   e.combo = combo;
   e.paso = 0;
@@ -78,7 +80,7 @@ function apuntar(e: Espiritu, f: Forma, blancos: Vector[], cajas: Caja[]): void 
     if (d > 0 && d <= IMAN && (!mejor || d < cerca)) { cerca = d; mejor = b; } // en un empate gana el primero
   }
   if (!mejor) return;
-  e.miraAntes = e.mira;
+  e.miraAntes ??= e.mira; // en un combo se guarda la de antes del primer giro
   e.mira = { x: (mejor.x - e.x) / cerca, y: (mejor.y - e.y) / cerca };
 }
 
@@ -99,6 +101,7 @@ export function actualizar(e: Espiritu, mover: Vector, blancos: Vector[] = [], c
   if (quiereMover && e.estado !== 'atacando') {
     const largo = Math.hypot(v.x, v.y);
     e.mira = { x: v.x / largo, y: v.y / largo };
+    e.miraAntes = null;
   }
   let golpe: Golpe | null = null;
   if (ocupado(e)) {
@@ -112,7 +115,6 @@ export function actualizar(e: Espiritu, mover: Vector, blancos: Vector[] = [], c
     }
     if (e.paso >= DURACION[accion] + (accion === 'E' ? e.esquivaExtra : 0)) {
       e.estado = 'quieto';
-      if (e.miraAntes) { e.mira = e.miraAntes; e.miraAntes = null; } // la esquiva siguiente va hacia donde ibas
       e.accion = null;
       e.combo = null;
       const s = e.siguientes.shift();

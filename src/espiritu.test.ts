@@ -138,10 +138,23 @@ describe('imán', () => {
     golpear(e, [{ x: 100, y: 120 }], [{ x: 112, y: 96, w: 8, h: 8 }]);
     expect(e.mira).toEqual({ x: 1, y: 0 });
   });
-  it('al acabar el golpe vuelve la mira de antes, y la esquiva va hacia allí', () => {
+  it('tras el golpe sigue mirando a lo golpeado, pero la esquiva sale hacia donde iba', () => {
     const e = crearEspiritu(100, 100);
     golpear(e, [{ x: 100, y: 120 }]);
     pasos(e, DURACION.L);
-    expect(e.mira).toEqual({ x: 1, y: 0 });
+    expect(e.mira).toEqual({ x: 0, y: 1 });
+    pedir(e, 'E');
+    pasos(e, 1);
+    expect(e.x).toBeGreaterThan(100);
+    expect(e.y).toBe(100);
+  });
+  it('moverse olvida la mira guardada', () => {
+    const e = crearEspiritu(100, 100);
+    golpear(e, [{ x: 100, y: 120 }]);
+    pasos(e, DURACION.L);
+    pasos(e, 1, { x: 0, y: -1 });
+    pedir(e, 'E');
+    pasos(e, 1);
+    expect(e.mira).toEqual({ x: 0, y: -1 });
   });
 });

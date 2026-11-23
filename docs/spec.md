@@ -12,7 +12,7 @@ No usa nombres, personajes, arte ni niveles de ningún juego existente.
 
 Entra:
 - Una arena de una sola pantalla con 3 muñecos de práctica que no mueren ni atacan.
-- El espíritu se mueve en 8 direcciones y tiene 3 acciones: golpe ligero (L), golpe pesado (P) y esquiva (E). Al golpear, si el golpe no toca ya nada y hay un enemigo o un muñeco a 30 px o menos, el espíritu se gira solo hacia el más cercano; al acabar el golpe vuelve a mirar hacia donde iba.
+- El espíritu se mueve en 8 direcciones y tiene 3 acciones: golpe ligero (L), golpe pesado (P) y esquiva (E). Al golpear, si el golpe no toca ya nada y hay un enemigo o un muñeco a 30 px o menos, el espíritu se gira solo hacia el más cercano; se queda mirando a lo golpeado, pero una esquiva sin mover sale hacia donde iba.
 - 5 combos con nombre (ver «Combos»).
 - Un contador de combo con multiplicador.
 - La lista de combos en pantalla, que se ilumina paso a paso mientras ejecutas un combo.
