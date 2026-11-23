@@ -75,13 +75,18 @@ describe('segador', () => {
 });
 
 describe('lanzador', () => {
-  it('dispara cada 2 s con aviso y se queda a distancia', () => {
+  it('dispara cada 2,5 s con aviso y se queda a distancia', () => {
     const e = crearEnemigo('lanzador', 130, 100);
     const ataques = pasos(e, RECARGA + AVISO + 1);
     expect(ataques).toHaveLength(1);
     expect(ataques[0].proyectil!.vx).toBeLessThan(0);
     pasos(e, 600);
     expect(Math.abs(Math.hypot(e.x - 100, e.y - 100) - DISTANCIA_LANZADOR)).toBeLessThanOrEqual(21);
+  });
+  it('huye a media marcha', () => {
+    const e = crearEnemigo('lanzador', 130, 100);
+    pasos(e, 10);
+    expect(e.x - 130).toBeCloseTo(10 * 0.25, 5);
   });
 });
 

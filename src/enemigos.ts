@@ -12,7 +12,7 @@ export const TIPOS: Tipo[] = ['segador', 'lanzador', 'escudado'];
 export const VIDA: Record<Tipo, number> = { segador: 6, lanzador: 4, escudado: 8 };
 const VELOCIDAD: Record<Tipo, number> = { segador: 0.6, lanzador: 0.5, escudado: 0.45 };
 export const AVISO = 30; // pasos: 0,5 s de aviso antes de cada ataque
-export const RECARGA = 120; // pasos: el lanzador dispara cada 2 s
+export const RECARGA = 150; // pasos: el lanzador dispara cada 2,5 s
 export const RECUPERA = 40;
 const ATURDIDO = 12;
 export const MUERTE = 30;
@@ -127,8 +127,9 @@ export function actualizarEnemigo(e: Enemigo, objetivo: Vector): Ataque {
       if (e.tipo === 'lanzador') {
         // Se queda a unos 120 px: se aleja si está cerca y se acerca si está lejos.
         const sentido = dist < DISTANCIA_LANZADOR - 20 ? -1 : dist > DISTANCIA_LANZADOR + 20 ? 1 : 0;
-        e.x += e.mira.x * v * sentido;
-        e.y += e.mira.y * v * sentido;
+        const huida = sentido < 0 ? 0.5 : 1; // huye a media marcha para que se le pueda alcanzar
+        e.x += e.mira.x * v * sentido * huida;
+        e.y += e.mira.y * v * sentido * huida;
         if (!pasoLento && --e.recarga <= 0) { e.estado = 'aviso'; e.t = AVISO; }
       } else if (dist <= ALCANCE) {
         e.estado = 'aviso';

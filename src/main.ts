@@ -258,7 +258,7 @@ function actualizar(): void {
     pedir(espiritu, p.accion, detector.registrar(p));
   }
   if (!avanzar(sensacion)) {
-    const golpe = moverEspiritu(espiritu, mover);
+    const golpe = moverEspiritu(espiritu, mover, modo === 'combate' ? vivos() : munecos);
     if (golpe) {
       if (golpe.combo) interfaz.combo(golpe.combo, ahora);
       let alcanzados: { x: number; y: number }[];
@@ -406,6 +406,10 @@ function dibujar(): void {
   const anima = Math.floor(tick / 15) % 2 + 1; // dos fotogramas de los dibujos animados del RPG
   for (const b of botin) {
     // En sus últimos 3 s late suave, sin destellar.
+    ctx.globalAlpha = b.vida > 180 ? 1 : 0.55 + 0.45 * Math.cos(b.vida / 6);
+    ctx.fillStyle = b.objeto ? '#ffd76a' : b.tipo === 'inestable' ? '#b98cff' : '#7dffa0'; // halo que late para verlo de lejos
+    ctx.globalAlpha *= 0.25 + 0.15 * Math.sin(tick / 10);
+    ctx.beginPath(); ctx.arc(Math.round(b.x), Math.round(b.y), 9, 0, Math.PI * 2); ctx.fill();
     ctx.globalAlpha = b.vida > 180 ? 1 : 0.55 + 0.45 * Math.cos(b.vida / 6);
     const f = b.objeto ? `equipo-${b.objeto.hueco}` : b.tipo === 'inestable' ? `inestable-${anima}` : 'cura-1';
     pintar(ctx, HOJAS.rpg, f, Math.round(b.x) - 16, Math.round(b.y) - 16);

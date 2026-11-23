@@ -12,7 +12,7 @@ No usa nombres, personajes, arte ni niveles de ningún juego existente.
 
 Entra:
 - Una arena de una sola pantalla con 3 muñecos de práctica que no mueren ni atacan.
-- El espíritu se mueve en 8 direcciones y tiene 3 acciones: golpe ligero (L), golpe pesado (P) y esquiva (E).
+- El espíritu se mueve en 8 direcciones y tiene 3 acciones: golpe ligero (L), golpe pesado (P) y esquiva (E). Al golpear, si hay un enemigo a 40 px o menos, el espíritu se gira solo hacia el más cercano.
 - 5 combos con nombre (ver «Combos»).
 - Un contador de combo con multiplicador.
 - La lista de combos en pantalla, que se ilumina paso a paso mientras ejecutas un combo.
@@ -51,7 +51,7 @@ Aprobado por el dueño el 2026-11-20.
 **Enemigos.** Siempre hay 3 en la arena. Cuando uno muere, aparece otro por un borde al cabo de 1 s. El tipo se elige al azar entre tres:
 
 - **Segador menor** (cuerpo a cuerpo): 6 de vida. Se acerca y, antes de golpear, se queda quieto y brilla durante 0,5 s, lo que da tiempo a esquivar.
-- **Lanzador** (a distancia): 4 de vida. Se mantiene a unos 120 px y dispara un proyectil lento cada 2 s, con un aviso previo. El proyectil se esquiva o se corta con un golpe.
+- **Lanzador** (a distancia): 4 de vida. Se mantiene a unos 120 px, huye a media marcha y dispara un proyectil lento cada 2,5 s, con un aviso previo. El proyectil se esquiva o se corta con un golpe.
 - **Escudado**: 8 de vida. Bloquea los golpes ligeros que le llegan de frente, con una chispa gris y sin daño. P, los combos y los golpes por la espalda sí le hacen daño.
 
 **Daño de los golpes.** L quita 1, P quita 2 y el remate de un combo quita 3. Cada enemigo tiene sus propios fotogramas de quieto, andar, aviso, ataque, golpeado y muerte. Los dibujos se hacen con Lienzo en 4 direcciones, igual que el espíritu, y el dueño los aprueba antes de usarlos.
@@ -104,7 +104,7 @@ El juego lee las regiones directamente del `.kit.json` generado. Un mismo mapa s
 
 Aprobado por el dueño el 2026-11-22. Solo en el modo Combate. Todo se pierde al caer: cada partida empieza sin mejoras ni equipo.
 
-**Botín.** Al morir, un enemigo puede soltar un objeto de equipo (10 %), un alma que cura 1 corazón (15 %) o un **alma inestable** (8 %). Lo que cae parpadea suave y desaparece a los 10 s. Se recoge pasando por encima.
+**Botín.** Al morir, un enemigo puede soltar un objeto de equipo (10 %), un alma que cura 1 corazón (15 %) o un **alma inestable** (8 %). Lo que cae lleva debajo un halo que late (verde la cura, violeta el alma inestable, dorado el equipo), parpadea suave y desaparece a los 10 s. Se recoge pasando por encima.
 
 **Alma inestable.** Al recogerla, el juego se pausa y se elige 1 de 3 mejoras al azar, con teclado, mando, toque o lector de pantalla. Las mejoras se acumulan:
 

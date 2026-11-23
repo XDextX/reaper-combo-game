@@ -14,9 +14,10 @@ const VELOCIDAD = 1.2;
 const VEL_ESQUIVA = 3;
 export const LIMITES = { x0: 16, y0: 20, x1: ANCHO - 16, y1: ALTO - 14 };
 const MAX_ESPERA = 3;
+export const IMAN = 40; // a esta distancia el golpe se gira solo hacia el enemigo más cercano
 
 type Forma = { w: number; h: number; empuje: number; centrado?: boolean; avance?: number };
-const BASE: Record<'L' | 'P', Forma> = { L: { w: 14, h: 14, empuje: 2 }, P: { w: 20, h: 18, empuje: 4 } };
+const BASE: Record<'L' | 'P', Forma> = { L: { w: 18, h: 16, empuje: 2 }, P: { w: 20, h: 18, empuje: 4 } };
 // Cómo cambia el golpe final de cada combo; valores iniciales que se ajustan jugando.
 export const EFECTO: Record<string, Forma> = {
   Siega: { w: 16, h: 16, empuje: 5 },
@@ -58,7 +59,19 @@ export function pedir(e: Espiritu, accion: Accion, combo: Combo | null = null): 
   else if (combo) e.siguientes[MAX_ESPERA - 1] = { accion, combo };
 }
 
-function golpeDe(e: Espiritu, accion: 'L' | 'P'): Golpe {
+/** Gira la mira hacia el blanco más cercano dentro del imán, si lo hay. */
+function apuntar(e: Espiritu, blancos: Vector[]): void {
+  let mejor: Vector | null = null;
+  let cerca = IMAN;
+  for (const b of blancos) {
+    const d = Math.hypot(b.x - e.x, b.y - e.y);
+    if (d > 0 && d <= cerca) { cerca = d; mejor = b; }
+  }
+  if (mejor) e.mira = { x: (mejor.x - e.x) / cerca, y: (mejor.y - e.y) / cerca };
+}
+
+function golpeDe(e: Espiritu, accion: 'L' | 'P', blancos: Vector[]): Golpe {
+  apuntar(e, blancos);
   const f = (e.combo && EFECTO[e.combo.nombre]) || BASE[accion];
   if (f.avance) {
     e.x += e.mira.x * f.avance;
@@ -70,7 +83,7 @@ function golpeDe(e: Espiritu, accion: 'L' | 'P'): Golpe {
 }
 
 /** Un paso fijo. Devuelve el golpe si este paso es el que conecta. */
-export function actualizar(e: Espiritu, mover: Vector): Golpe | null {
+export function actualizar(e: Espiritu, mover: Vector, blancos: Vector[] = []): Golpe | null {
   const v = limitar(mover);
   const quiereMover = v.x !== 0 || v.y !== 0;
   if (quiereMover && e.estado !== 'atacando') {
@@ -85,7 +98,7 @@ export function actualizar(e: Espiritu, mover: Vector): Golpe | null {
       e.x += e.mira.x * VEL_ESQUIVA;
       e.y += e.mira.y * VEL_ESQUIVA;
     } else if (accion !== 'E' && e.paso === ACTIVO[accion]) {
-      golpe = golpeDe(e, accion);
+      golpe = golpeDe(e, accion, blancos);
     }
     if (e.paso >= DURACION[accion] + (accion === 'E' ? e.esquivaExtra : 0)) {
       e.estado = 'quieto';

@@ -114,3 +114,20 @@ describe('golpes y muñecos', () => {
     expect(pasos(juicio, ACTIVO.P)[0].empuje).toBeGreaterThan(pasos(normal, ACTIVO.P)[0].empuje);
   });
 });
+
+describe('imán', () => {
+  it('el golpe se gira hacia el enemigo más cercano dentro del imán', () => {
+    const e = crearEspiritu(100, 100); // mira a la derecha
+    pedir(e, 'L');
+    let g: Golpe | null = null;
+    for (let i = 0; i < ACTIVO.L; i++) g = actualizar(e, QUIETO, [{ x: 100, y: 130 }, { x: 100, y: 60 }]) ?? g;
+    expect(g!.caja.y).toBeGreaterThan(100);
+    expect(e.mira).toEqual({ x: 0, y: 1 });
+  });
+  it('fuera del imán no se gira', () => {
+    const e = crearEspiritu(100, 100);
+    pedir(e, 'L');
+    for (let i = 0; i < ACTIVO.L; i++) actualizar(e, QUIETO, [{ x: 100, y: 160 }]);
+    expect(e.mira).toEqual({ x: 1, y: 0 });
+  });
+});
