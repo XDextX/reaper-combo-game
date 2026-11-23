@@ -12,7 +12,7 @@ No usa nombres, personajes, arte ni niveles de ningún juego existente.
 
 Entra:
 - Una arena de una sola pantalla con 3 muñecos de práctica que no mueren ni atacan.
-- El espíritu se mueve en 8 direcciones y tiene 3 acciones: golpe ligero (L), golpe pesado (P) y esquiva (E). Al golpear, si hay un enemigo a 40 px o menos, el espíritu se gira solo hacia el más cercano.
+- El espíritu se mueve en 8 direcciones y tiene 3 acciones: golpe ligero (L), golpe pesado (P) y esquiva (E). Al golpear, si el golpe no toca ya nada y hay un enemigo o un muñeco a 30 px o menos, el espíritu se gira solo hacia el más cercano; al acabar el golpe vuelve a mirar hacia donde iba.
 - 5 combos con nombre (ver «Combos»).
 - Un contador de combo con multiplicador.
 - La lista de combos en pantalla, que se ilumina paso a paso mientras ejecutas un combo.
@@ -78,7 +78,7 @@ La tecla se lee por su posición física (`KeyboardEvent.code`), así que WASD, 
 ## Estilo visual
 
 - Pixel art oscuro, con fotogramas de 32×32 escalados sin suavizado.
-- El espíritu tiene dibujos para cuatro direcciones: arriba, abajo y lado. Mirar a la izquierda es el lado volteado. Todas sus animaciones existen en las tres versiones (quieto, andar, golpes, esquiva y daño). Al moverse en diagonal se usa la dirección del eje con más peso, y en un empate gana el lado. Los golpes siguen alcanzando hacia donde mira, en 8 direcciones.
+- El espíritu tiene dibujos para cuatro direcciones: arriba, abajo y lado. Mirar a la izquierda es el lado volteado. Todas sus animaciones existen en las tres versiones (quieto, andar, golpes, esquiva y daño). Al moverse en diagonal se usa la dirección del eje con más peso, y en un empate gana el lado. Los golpes alcanzan hacia donde mira: una de las 8 direcciones al moverse, o la que marque el imán hacia el blanco.
 - Paleta: fondo casi negro, el espíritu en blanco espectral (#eef6f8) con sombras cian, y los golpes en magenta.
 - Las hojas de sprites se dibujan con Lienzo, usando el elemento `pixels` y `spritesheet` / `sheetFrame`. Lienzo saca a la vez la hoja `.png` y su `.kit.json`. Los diseños de las hojas se generan con `assets/fuentes/hojas.py` y se guardan en `assets/fuentes/`, para que el dueño pueda abrirlos en el editor de Lienzo. Se renderizan con el comando de Lienzo directamente en `assets/` (por ejemplo, `node <lienzo>/lienzo.js render assets/fuentes/espiritu.json -o assets/espiritu.png`).
 

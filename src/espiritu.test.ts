@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { COMBOS } from './combos';
-import { ACTIVO, DURACION, LIMITES, actualizar, crearEspiritu, pedir, type Espiritu, type Golpe } from './espiritu';
+import { ACTIVO, DURACION, LIMITES, actualizar, crearEspiritu, pedir, type Caja, type Espiritu, type Golpe } from './espiritu';
 import { actualizarMuneco, crearMuneco, recibir } from './munecos';
 
 const QUIETO = { x: 0, y: 0 };
@@ -116,18 +116,32 @@ describe('golpes y muñecos', () => {
 });
 
 describe('imán', () => {
-  it('el golpe se gira hacia el enemigo más cercano dentro del imán', () => {
-    const e = crearEspiritu(100, 100); // mira a la derecha
+  const golpear = (e: Espiritu, blancos: { x: number; y: number }[], cajas: Caja[] = []) => {
     pedir(e, 'L');
     let g: Golpe | null = null;
-    for (let i = 0; i < ACTIVO.L; i++) g = actualizar(e, QUIETO, [{ x: 100, y: 130 }, { x: 100, y: 60 }]) ?? g;
-    expect(g!.caja.y).toBeGreaterThan(100);
+    for (let i = 0; i < ACTIVO.L; i++) g = actualizar(e, QUIETO, blancos, cajas) ?? g;
+    return g!;
+  };
+  it('el golpe se gira hacia el enemigo más cercano dentro del imán', () => {
+    const e = crearEspiritu(100, 100); // mira a la derecha
+    const g = golpear(e, [{ x: 100, y: 125 }, { x: 100, y: 75 }]);
+    expect(g.caja.y).toBeGreaterThan(100);
     expect(e.mira).toEqual({ x: 0, y: 1 });
   });
-  it('fuera del imán no se gira', () => {
+  it('a 35 px ya no gira: el golpe no llegaría', () => {
     const e = crearEspiritu(100, 100);
-    pedir(e, 'L');
-    for (let i = 0; i < ACTIVO.L; i++) actualizar(e, QUIETO, [{ x: 100, y: 160 }]);
+    golpear(e, [{ x: 100, y: 135 }]);
+    expect(e.mira).toEqual({ x: 1, y: 0 });
+  });
+  it('no gira si el golpe ya toca un proyectil', () => {
+    const e = crearEspiritu(100, 100);
+    golpear(e, [{ x: 100, y: 120 }], [{ x: 112, y: 96, w: 8, h: 8 }]);
+    expect(e.mira).toEqual({ x: 1, y: 0 });
+  });
+  it('al acabar el golpe vuelve la mira de antes, y la esquiva va hacia allí', () => {
+    const e = crearEspiritu(100, 100);
+    golpear(e, [{ x: 100, y: 120 }]);
+    pasos(e, DURACION.L);
     expect(e.mira).toEqual({ x: 1, y: 0 });
   });
 });

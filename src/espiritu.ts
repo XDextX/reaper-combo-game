@@ -1,5 +1,6 @@
 // El espíritu: máquina de estados, movimiento y golpes (spec, «Alcance» y «Combos»).
 import type { Combo } from './combos';
+import { solapan } from './munecos';
 import { ALTO, ANCHO } from './pantalla';
 import { limitar, type Accion, type Vector } from './traducir';
 
@@ -14,7 +15,7 @@ const VELOCIDAD = 1.2;
 const VEL_ESQUIVA = 3;
 export const LIMITES = { x0: 16, y0: 20, x1: ANCHO - 16, y1: ALTO - 14 };
 const MAX_ESPERA = 3;
-export const IMAN = 40; // a esta distancia el golpe se gira solo hacia el enemigo más cercano
+export const IMAN = 30; // a esta distancia el golpe se gira solo hacia el enemigo más cercano: lo que alcanza el golpe
 
 type Forma = { w: number; h: number; empuje: number; centrado?: boolean; avance?: number };
 const BASE: Record<'L' | 'P', Forma> = { L: { w: 18, h: 16, empuje: 2 }, P: { w: 20, h: 18, empuje: 4 } };
@@ -32,6 +33,7 @@ export function crearEspiritu(x: number, y: number) {
     x,
     y,
     mira: { x: 1, y: 0 } as Vector,
+    miraAntes: null as Vector | null, // la mira de antes de que el imán girase el golpe
     estado: 'quieto' as Estado,
     accion: null as Accion | null,
     combo: null as Combo | null,
@@ -59,31 +61,39 @@ export function pedir(e: Espiritu, accion: Accion, combo: Combo | null = null): 
   else if (combo) e.siguientes[MAX_ESPERA - 1] = { accion, combo };
 }
 
-/** Gira la mira hacia el blanco más cercano dentro del imán, si lo hay. */
-function apuntar(e: Espiritu, blancos: Vector[]): void {
+const cajaDe = (e: Espiritu, f: Forma): Caja => {
+  const cx = f.centrado ? e.x : e.x + e.mira.x * (6 + f.w / 2);
+  const cy = f.centrado ? e.y : e.y + e.mira.y * (6 + f.h / 2);
+  return { x: cx - f.w / 2, y: cy - f.h / 2, w: f.w, h: f.h };
+};
+
+/** Gira la mira hacia el blanco más cercano dentro del imán, salvo que el golpe ya toque algo (enemigo o proyectil). */
+function apuntar(e: Espiritu, f: Forma, blancos: Vector[], cajas: Caja[]): void {
+  const caja = cajaDe(e, f);
+  if (cajas.some((c) => solapan(caja, c))) return;
   let mejor: Vector | null = null;
   let cerca = IMAN;
   for (const b of blancos) {
     const d = Math.hypot(b.x - e.x, b.y - e.y);
-    if (d > 0 && d <= cerca) { cerca = d; mejor = b; }
+    if (d > 0 && d <= IMAN && (!mejor || d < cerca)) { cerca = d; mejor = b; } // en un empate gana el primero
   }
-  if (mejor) e.mira = { x: (mejor.x - e.x) / cerca, y: (mejor.y - e.y) / cerca };
+  if (!mejor) return;
+  e.miraAntes = e.mira;
+  e.mira = { x: (mejor.x - e.x) / cerca, y: (mejor.y - e.y) / cerca };
 }
 
-function golpeDe(e: Espiritu, accion: 'L' | 'P', blancos: Vector[]): Golpe {
-  apuntar(e, blancos);
+function golpeDe(e: Espiritu, accion: 'L' | 'P', blancos: Vector[], cajas: Caja[]): Golpe {
   const f = (e.combo && EFECTO[e.combo.nombre]) || BASE[accion];
+  if (!f.centrado) apuntar(e, f, blancos, cajas);
   if (f.avance) {
     e.x += e.mira.x * f.avance;
     e.y += e.mira.y * f.avance;
   }
-  const cx = f.centrado ? e.x : e.x + e.mira.x * (6 + f.w / 2);
-  const cy = f.centrado ? e.y : e.y + e.mira.y * (6 + f.h / 2);
-  return { accion, combo: e.combo, empuje: f.empuje, caja: { x: cx - f.w / 2, y: cy - f.h / 2, w: f.w, h: f.h } };
+  return { accion, combo: e.combo, empuje: f.empuje, caja: cajaDe(e, f) };
 }
 
-/** Un paso fijo. Devuelve el golpe si este paso es el que conecta. */
-export function actualizar(e: Espiritu, mover: Vector, blancos: Vector[] = []): Golpe | null {
+/** Un paso fijo. Devuelve el golpe si este paso es el que conecta. `blancos` son los centros que atrae el imán y `cajas` lo que ya toca el golpe sin girar (enemigos y proyectiles). */
+export function actualizar(e: Espiritu, mover: Vector, blancos: Vector[] = [], cajas: Caja[] = []): Golpe | null {
   const v = limitar(mover);
   const quiereMover = v.x !== 0 || v.y !== 0;
   if (quiereMover && e.estado !== 'atacando') {
@@ -98,10 +108,11 @@ export function actualizar(e: Espiritu, mover: Vector, blancos: Vector[] = []): 
       e.x += e.mira.x * VEL_ESQUIVA;
       e.y += e.mira.y * VEL_ESQUIVA;
     } else if (accion !== 'E' && e.paso === ACTIVO[accion]) {
-      golpe = golpeDe(e, accion, blancos);
+      golpe = golpeDe(e, accion, blancos, cajas);
     }
     if (e.paso >= DURACION[accion] + (accion === 'E' ? e.esquivaExtra : 0)) {
       e.estado = 'quieto';
+      if (e.miraAntes) { e.mira = e.miraAntes; e.miraAntes = null; } // la esquiva siguiente va hacia donde ibas
       e.accion = null;
       e.combo = null;
       const s = e.siguientes.shift();
